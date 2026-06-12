@@ -58,17 +58,17 @@ flowchart TD
     classDef compute fill:#faf5ff,stroke:#7e22ce,stroke-width:2px,color:#2e1065;
     classDef storage fill:#f0fdf4,stroke:#166534,stroke-width:2px,color:#14532d;
 
-    %% 1. Application Layer
-    subgraph AppLayer ["1. APP CORE & CLIENT INTERFACE"]
-        Pipeline(["User / CI-CD Pipeline"]) -->|1. Submit Proposal| WebUI["Submission App<br>(Web UI / API)"]
-        WebUI -->|2. Initialize Session| Orchestrator["App Workflow Orchestrator"]
+    %% 1. Submission Phase
+    subgraph AppLayer ["1. SUBMISSION LAYER"]
+        Pipeline(["User / CI-CD Pipeline"]) -->|1. Submission| WebUI["Submission App<br>(Web UI / API)"]
+        WebUI -->|2. Init Governance Session| Orchestrator["App Workflow Orchestrator"]
     end
 
-    %% 2. Band.ai Collaboration Layer
-    subgraph BandLayer ["2. BAND.AI ORCHESTRATION HUB"]
-        Room["Band.ai Collaborative Room<br>(Shared Context & State Grid)"]
+    %% 2. Shared Collaboration Phase
+    subgraph BandLayer ["2. BAND.AI RUNTIME COLLABORATION (Steps 2-4)"]
+        Room["Band.ai Collaborative Room<br>(Shared Context & Shared State Grid)"]
 
-        subgraph Panel ["Governance Agent Panel (Min. 3 Agents)"]
+        subgraph Panel ["Governance Agent Panel"]
             Eth["⚖️ Ethics Agent"]
             Sec["🔒 Security Agent"]
             Leg["📜 Legal Agent"]
@@ -77,37 +77,33 @@ flowchart TD
         end
     end
 
-    %% Connect App to Band Room Space
-    Orchestrator -->|3. Register Submissions via Band SDK| Room
+    %% Step 2 & 3: Briefing and Inference
+    Orchestrator -->|3. Inject Context & Open Room| Room
+    Room -->|4. Independent Review: Pull Context| Panel
 
-    %% Clear Unidirectional Data Loops
-    Room -->|4. Dispatch Target Task Context| Panel
-    Panel ==>|5. Cross-Examine, Debate & Cast Votes| Room
-
-    %% 3. Compute Infrastructure Layer
-    subgraph ComputeLayer ["3. PARTNER LLM COMPUTE STACK"]
-        Feather["Featherless.ai<br>(Specialized Open-Source Models)"]
-        AIML["AI/ML API<br>(Unified Commercial Router)"]
+    %% Compute Infrastructure
+    subgraph ComputeLayer ["3. COMPUTE ENGINE"]
+        Feather["Featherless.ai<br>(Specialized OS Models)"]
+        AIML["AI/ML API<br>(Commercial Gateways)"]
     end
 
-    %% Agents requesting Inference
-    Eth -.->|Inference Request| Feather
-    Sec -.->|Inference Request| Feather
-    Leg -.->|Inference Request| Feather
-    Prod -.->|Inference Request| AIML
-    Comp -.->|Inference Request| AIML
+    Panel -.->|LLM Inference Queries| ComputeLayer
 
-    %% 4. Storage & Record Finalization
-    subgraph StorageLayer ["4. AUDIT & VERIFICATION TRAIL"]
+    %% Step 4 & 5: Peer Cross-Exam & Collaborative Voting
+    Panel ==>|5. Adversarial Cross-Examination:<br>Challenge Peer Conclusions & Debates| Room
+    Panel -->|6. Final Voting:<br>Approve / Reject / Flag| Room
+
+    %% 4. Governance Record & Output Phase
+    subgraph StorageLayer ["4. HARDENED AUDIT TRAIL (Steps 5-6)"]
         Ledger[("Immutable Governance Record DB")]
     end
 
     %% Final Resolution Path Out of Band Room
-    Room -->|6. Compile Trails & Votes| RecordGen["Governance Record Generator"]
-    RecordGen -->|7. Write Signed Audit Trail| Ledger
-    RecordGen -->|8. Final Verdict Output| Pipeline
+    Room -->|7. Governance Record:<br>Compile Full Conversation & Voting Trails| RecordGen["Governance Record Generator"]
+    RecordGen -->|8. Sign & Persist Trail| Ledger
+    RecordGen -->|9. Decision Output Verdict| Pipeline
 
-    %% Style Classes
+    %% Assigning Modern Style Classes
     class Pipeline,WebUI,Orchestrator,RecordGen app;
     class Room,Eth,Sec,Leg,Prod,Comp band;
     class Feather,AIML compute;
