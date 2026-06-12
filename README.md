@@ -112,6 +112,19 @@ flowchart TD
 
 ---
 
+## Project Structure
+
+The project is structured as a monorepo containing the following workspaces and services:
+
+- **`web/`**: Next.js 15 web application providing the submission form, live agent room review activity feed, and historical audit viewer.
+- **`backend/`**: Python FastAPI backend which powers the session orchestration, agent evaluators, and governance record compiler.
+- **`docker/`**: Deployment configurations, container blueprints, and multi-container runtime rules.
+- **`docs/`**: Central repository specifications, guide sheets, and structural references.
+
+For details on how to set up the individual layers, check [backend/README.md](./backend/README.md) and [web/README.md](./web/README.md).
+
+---
+
 ## Governance Records & Reasoning Trails
 
 Every review produces a structured, timestamped record containing:

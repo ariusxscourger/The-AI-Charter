@@ -117,9 +117,9 @@ pytest        testing
 ### Frontend (Next.js)
 
 ```
-Next.js       14+ (App Router)
+Next.js       15+ (App Router)
 TypeScript    strict mode
-Tailwind CSS  styling only — no component library
+Tailwind CSS  v4 (styling only — no component library)
 ```
 
 ### LLM Routing
@@ -157,7 +157,7 @@ NEXT_PUBLIC_POLL_INTERVAL_MS=3000
 ## 4. Project Structure
 
 ```
-ai_charter/
+The-AI-Charter/
 ├── web/                              # Next.js web app
 │   ├── src/
 │   │   ├── app/
@@ -219,6 +219,11 @@ ai_charter/
 │   │   └── fixtures/
 │   │       └── sample_submission.json
 │   └── requirements.txt
+│
+└── docker/                           # Docker deployment
+    ├── docker-compose.yml
+    ├── Dockerfile.backend
+    └── README.md
 ```
 
 ---
