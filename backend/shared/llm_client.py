@@ -49,7 +49,14 @@ class LLMClient:
             except (httpx.TimeoutException, httpx.HTTPStatusError) as e:
                 if attempt == 2:
                     raise LLMClientError(f"LLM call failed after 3 attempts: {e}")
-                await asyncio.sleep(2 ** attempt)
+                sleep_time = 2 ** attempt
+                if isinstance(e, httpx.HTTPStatusError) and e.response.status_code == 429:
+                    retry_after = e.response.headers.get("Retry-After")
+                    if retry_after and retry_after.isdigit():
+                        sleep_time = int(retry_after)
+                    else:
+                        sleep_time = 4 * (attempt + 1)  # 4s, 8s
+                await asyncio.sleep(sleep_time)
 
 class LLMClientError(Exception):
     pass

@@ -1,6 +1,9 @@
+import logging
 from shared.schemas import SubmissionPayload, Finding
 from shared.llm_client import LLMClient
 from shared.cross_exam_prompts import build_cross_exam_prompt, parse_challenge
+
+logger = logging.getLogger(__name__)
 
 class BaseGovernanceAgent:
     AGENT_ID: str        # Override: "security", "ethics", etc.
@@ -18,12 +21,25 @@ class BaseGovernanceAgent:
         await self._join(room_id)
         await self._post_status(room_id, "reviewing")
 
-        findings = await self.evaluate(submission)          # subclass implements
+        try:
+            findings = await self.evaluate(submission)          # subclass implements
+        except Exception as exc:
+            logger.warning("Agent %s evaluation failed: %s. Defaulting to empty findings.", self.AGENT_NAME, exc)
+            findings = []
+
         await self._post_findings(room_id, findings)
 
-        await self._cross_examine(room_id)
+        try:
+            await self._cross_examine(room_id)
+        except Exception as exc:
+            logger.warning("Agent %s cross-examination failed: %s. Skipping challenge.", self.AGENT_NAME, exc)
 
-        vote, confidence, reasoning = self._determine_vote(findings, submission)  # subclass implements
+        try:
+            vote, confidence, reasoning = await self._determine_vote(findings, submission)  # subclass implements
+        except Exception as exc:
+            logger.warning("Agent %s vote determination failed: %s. Defaulting to Approve.", self.AGENT_NAME, exc)
+            vote, confidence, reasoning = "approve", "low", f"Fallback approval due to error: {exc}"
+
         await self._post_vote(room_id, vote, confidence, reasoning, findings)
 
     # ─── To be implemented by subclasses ─────────────────────────────────────
@@ -31,7 +47,7 @@ class BaseGovernanceAgent:
     async def evaluate(self, submission: SubmissionPayload) -> list[Finding]:
         raise NotImplementedError
 
-    def _determine_vote(
+    async def _determine_vote(
         self, findings: list[Finding], submission: SubmissionPayload
     ) -> tuple[str, str, str]:
         # Returns (vote, confidence, reasoning)

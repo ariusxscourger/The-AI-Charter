@@ -37,53 +37,59 @@ def agent():
     return SecurityAgent(band_client=None, llm_client=MockLLM())
 
 
-def test_vote_critical_rejects(agent, dummy_submission):
+@pytest.mark.asyncio
+async def test_vote_critical_rejects(agent, dummy_submission):
     findings = [
         Finding(domain="attack_surface", severity="critical", title="Bad", detail="Very bad")
     ]
-    vote, conf, _ = agent._determine_vote(findings, dummy_submission)
+    vote, conf, _ = await agent._determine_vote(findings, dummy_submission)
     assert vote == "reject"
     assert conf == "high"
 
-def test_vote_two_high_rejects(agent, dummy_submission):
+@pytest.mark.asyncio
+async def test_vote_two_high_rejects(agent, dummy_submission):
     findings = [
         Finding(domain="attack_surface", severity="high", title="Bad 1", detail="Bad"),
         Finding(domain="data_handling", severity="high", title="Bad 2", detail="Bad")
     ]
-    vote, conf, _ = agent._determine_vote(findings, dummy_submission)
+    vote, conf, _ = await agent._determine_vote(findings, dummy_submission)
     assert vote == "reject"
     assert conf == "high"
 
-def test_vote_one_high_flags(agent, dummy_submission):
+@pytest.mark.asyncio
+async def test_vote_one_high_flags(agent, dummy_submission):
     findings = [
         Finding(domain="attack_surface", severity="high", title="Bad 1", detail="Bad"),
     ]
-    vote, conf, _ = agent._determine_vote(findings, dummy_submission)
+    vote, conf, _ = await agent._determine_vote(findings, dummy_submission)
     assert vote == "flag"
     assert conf == "high"
 
-def test_vote_three_medium_pii_flags(agent, pii_submission):
+@pytest.mark.asyncio
+async def test_vote_three_medium_pii_flags(agent, pii_submission):
     findings = [
         Finding(domain="attack_surface", severity="medium", title="Bad 1", detail="Bad"),
         Finding(domain="data_handling", severity="medium", title="Bad 2", detail="Bad"),
         Finding(domain="abuse_misuse", severity="medium", title="Bad 3", detail="Bad")
     ]
-    vote, conf, _ = agent._determine_vote(findings, pii_submission)
+    vote, conf, _ = await agent._determine_vote(findings, pii_submission)
     assert vote == "flag"
     assert conf == "medium"
 
-def test_vote_medium_no_pii_approves(agent, dummy_submission):
+@pytest.mark.asyncio
+async def test_vote_medium_no_pii_approves(agent, dummy_submission):
     findings = [
         Finding(domain="attack_surface", severity="medium", title="Bad 1", detail="Bad"),
         Finding(domain="data_handling", severity="medium", title="Bad 2", detail="Bad"),
         Finding(domain="abuse_misuse", severity="medium", title="Bad 3", detail="Bad")
     ]
-    vote, conf, _ = agent._determine_vote(findings, dummy_submission)
+    vote, conf, _ = await agent._determine_vote(findings, dummy_submission)
     assert vote == "approve"
     assert conf == "medium"
 
-def test_vote_empty_approves_low(agent, dummy_submission):
+@pytest.mark.asyncio
+async def test_vote_empty_approves_low(agent, dummy_submission):
     findings = []
-    vote, conf, _ = agent._determine_vote(findings, dummy_submission)
+    vote, conf, _ = await agent._determine_vote(findings, dummy_submission)
     assert vote == "approve"
     assert conf == "low"

@@ -20,11 +20,19 @@ async def evaluate_all_domains(
     llm: LLMClient
 ) -> list[Finding]:
     """
-    Runs all 7 domain evaluations concurrently.
-    Each domain is a separate LLM call — more focused, easier to debug.
-    Per-domain failures return [] and log a warning rather than crashing.
+    Runs all 7 domain evaluations sequentially with a Semaphore of 1
+    to avoid triggering API rate limits (429 Too Many Requests).
     """
-    tasks = [evaluate_domain(domain, submission, llm) for domain in DOMAINS]
+    sem = asyncio.Semaphore(1)
+
+    async def evaluate_with_sem(domain: str):
+        async with sem:
+            res = await evaluate_domain(domain, submission, llm)
+            # Short rest between requests to be gentle on the API rate limits
+            await asyncio.sleep(0.5)
+            return res
+
+    tasks = [evaluate_with_sem(domain) for domain in DOMAINS]
     results = await asyncio.gather(*tasks, return_exceptions=True)
 
     findings = []

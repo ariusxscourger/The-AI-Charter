@@ -13,7 +13,7 @@ class SecurityAgent(BaseGovernanceAgent):
         """Run all 7 security domain evaluations in parallel via Featherless.ai."""
         return await evaluate_all_domains(submission, self.llm)
 
-    def _determine_vote(
+    async def _determine_vote(
         self, findings: list[Finding], submission: SubmissionPayload
     ) -> tuple[str, str, str]:
         """
@@ -36,12 +36,12 @@ class SecurityAgent(BaseGovernanceAgent):
             # No findings at all — always surface something, so flag confidence low
             vote, confidence = "approve", "low"
 
-        reasoning = self._generate_reasoning_sync(findings, vote, submission)
+        reasoning = await self._generate_reasoning(findings, vote, submission)
         return vote, confidence, reasoning
 
-    def _generate_reasoning_sync(self, findings, vote, submission) -> str:
+    async def _generate_reasoning(self, findings, vote, submission) -> str:
         """
-        Short synchronous LLM call to produce the 3–6 sentence narrative.
+        Short asynchronous LLM call to produce the 3–6 sentence narrative.
         This is the ONLY LLM call not in evaluate() — it summarises, it doesn't decide.
         """
         # Build a brief findings summary for the prompt
@@ -53,5 +53,7 @@ class SecurityAgent(BaseGovernanceAgent):
             "Write a 3–6 sentence reasoning narrative explaining this vote. "
             "Be specific. Reference the actual findings. Do not use bullet points."
         )
-        import asyncio
-        return asyncio.run(self.llm.complete(REASONING_PROMPT, prompt_user))
+        try:
+            return await self.llm.complete(REASONING_PROMPT, prompt_user)
+        except Exception as exc:
+            return f"Security evaluation concluded with vote {vote.upper()}. Identified {len(findings)} findings. Fallback reasoning due to LLM error: {exc}."

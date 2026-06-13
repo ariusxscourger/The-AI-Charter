@@ -38,7 +38,7 @@ async def test_security_agent_integration():
     # Assert findings were produced (this is a vulnerable submission)
     assert len(findings) > 0
 
-    vote, confidence, reasoning = agent._determine_vote(findings, submission)
+    vote, confidence, reasoning = await agent._determine_vote(findings, submission)
     
     # Assert that it didn't just blindly approve a vulnerable architecture
     assert vote != "approve"
@@ -81,8 +81,10 @@ async def test_security_agent_band_lifecycle(monkeypatch):
     ]
     agent.evaluate = AsyncMock(return_value=mock_findings)
 
-    # 2. Mock _generate_reasoning_sync to avoid live LLM call
-    monkeypatch.setattr(agent, "_generate_reasoning_sync", lambda f, v, s: "Mock reasoning narrative.")
+    # 2. Mock _generate_reasoning to avoid live LLM call
+    async def mock_reasoning(*args):
+        return "Mock reasoning narrative."
+    monkeypatch.setattr(agent, "_generate_reasoning", mock_reasoning)
 
     # Run the lifecycle
     submission = SubmissionPayload(
