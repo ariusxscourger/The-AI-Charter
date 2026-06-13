@@ -132,15 +132,20 @@ Tailwind CSS  v4 (styling only — no component library)
 | 🚀 Product    | AI/ML API      |
 | ✅ Compliance | AI/ML API      |
 
-Featherless target model: `mistralai/Mistral-7B-Instruct-v0.2` (or equivalent instruction-following model that supports JSON output).
+Featherless target model: `mistralai/Mistral-7B-Instruct-v0.2` (or equivalent instruction-following model that supports JSON output).\*\*\*\*
 
 ### Environment Variables
 
 ```env
 # Band
 BAND_API_KEY=your_band_api_key
-BAND_WORKSPACE_ID=your_workspace_id
 
+# Individual Agent Keys (Optional fallbacks)
+SECURITY_AGENT_API_KEY=your_security_agent_key
+ETHICS_AGENT_API_KEY=your_ethics_agent_key
+LEGAL_AGENT_API_KEY=your_legal_agent_key
+PRODUCT_AGENT_API_KEY=your_product_agent_key
+COMPLIANCE_AGENT_API_KEY=your_compliance_agent_key
 # LLM
 FEATHERLESS_API_KEY=your_featherless_key
 FEATHERLESS_BASE_URL=https://api.featherless.ai/v1

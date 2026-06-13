@@ -35,6 +35,13 @@ app.add_middleware(
 band_client = BandClient(api_key=os.environ.get("BAND_API_KEY", "dummy"))
 agents = [SecurityAgent, EthicsAgent, LegalAgent, ProductAgent, ComplianceAgent]
 
+def get_band_client_for(AgentClass) -> BandClient:
+    key_name = f"{AgentClass.AGENT_ID.upper()}_AGENT_API_KEY"
+    agent_key = os.environ.get(key_name)
+    if agent_key and not agent_key.startswith("your_"):
+        return BandClient(api_key=agent_key)
+    return band_client
+
 def get_llm_for(AgentClass):
     featherless_key = os.environ.get("FEATHERLESS_API_KEY")
     aiml_key = os.environ.get("AIML_API_KEY")
@@ -55,10 +62,15 @@ async def submit(payload: SubmissionPayload):
     # Fire all agents concurrently — do not await, return room_id immediately
     async def run_agents():
         tasks = [
-            AgentClass(band_client, get_llm_for(AgentClass)).run(room_id, payload)
+            AgentClass(get_band_client_for(AgentClass), get_llm_for(AgentClass)).run(room_id, payload)
             for AgentClass in agents
         ]
-        await asyncio.gather(*tasks, return_exceptions=True)
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        for r, AgentClass in zip(results, agents):
+            if isinstance(r, Exception):
+                print(f"\n[ERROR] Agent {AgentClass.AGENT_NAME} failed: {r}\n", flush=True)
+                import traceback
+                traceback.print_exception(type(r), r, r.__traceback__)
 
     asyncio.create_task(run_agents())
 
