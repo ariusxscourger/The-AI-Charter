@@ -32,7 +32,9 @@ app.add_middleware(
 )
 
 # Initialise Band client and all 5 agents at startup
-band_client = BandClient(api_key=os.environ.get("BAND_API_KEY", "dummy"))
+# Prefer the Security Agent key to avoid Human API 403 errors on room creation
+orchestrator_key = os.environ.get("SECURITY_AGENT_API_KEY") or os.environ.get("BAND_API_KEY", "dummy")
+band_client = BandClient(api_key=orchestrator_key)
 agents = [SecurityAgent, EthicsAgent, LegalAgent, ProductAgent, ComplianceAgent]
 
 def get_band_client_for(AgentClass) -> BandClient:
@@ -46,10 +48,13 @@ def get_llm_for(AgentClass):
     featherless_key = os.environ.get("FEATHERLESS_API_KEY")
     aiml_key = os.environ.get("AIML_API_KEY")
     
+    featherless_model = os.environ.get("FEATHERLESS_MODEL") or "google/gemma-4-31B-it"
+    aiml_model = os.environ.get("AIML_MODEL") or "google/gemma-4-31B-it"
+    
     if featherless_key:
-        return LLMClient(provider="featherless", api_key=featherless_key, model="mistralai/Mistral-7B-Instruct-v0.2")
+        return LLMClient(provider="featherless", api_key=featherless_key, model=featherless_model)
     elif aiml_key:
-        return LLMClient(provider="aiml", api_key=aiml_key, model="mistralai/Mistral-7B-Instruct-v0.2")
+        return LLMClient(provider="aiml", api_key=aiml_key, model=aiml_model)
     else:
         # Fallback dummy LLM client so it doesn't crash if no keys are provided
         return LLMClient(provider="featherless", api_key="dummy", model="dummy")

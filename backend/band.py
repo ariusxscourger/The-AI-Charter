@@ -42,15 +42,15 @@ _MOCK_ROOMS: Dict[str, str] = {}
 _MOCK_MESSAGES: Dict[str, List[BandMessage]] = {}
 
 class BandRooms:
-    def __init__(self, client: RestClient):
+    def __init__(self, client: RestClient, api_key: str):
         self.client = client
+        self.api_key = api_key
 
     async def create(self, name: str):
         try:
             loop = asyncio.get_running_loop()
-            api_key = os.environ.get("BAND_API_KEY", "")
             
-            if api_key.startswith("band_a_") or api_key.startswith("thnv_a_"):
+            if self.api_key.startswith("band_a_") or self.api_key.startswith("thnv_a_"):
                 from thenvoi_rest import ChatRoomRequest, ParticipantRequest
                 chat_req = ChatRoomRequest()
                 response = await loop.run_in_executor(
@@ -107,8 +107,7 @@ class BandRooms:
                 "content": content
             })
             loop = asyncio.get_running_loop()
-            api_key = os.environ.get("BAND_API_KEY", "")
-            if api_key.startswith("band_a_") or api_key.startswith("thnv_a_"):
+            if self.api_key.startswith("band_a_") or self.api_key.startswith("thnv_a_"):
                 from thenvoi_rest import ChatMessageRequestMentionsItem
                 user_id = os.environ.get("BAND_USER_ID") or "5b242026-cab0-43b5-a519-542a72deed6e"
                 msg_req = ChatMessageRequest(
@@ -166,4 +165,4 @@ class BandClient:
     def __init__(self, api_key: str):
         base_url = os.environ.get("BAND_BASE_URL") or os.environ.get("THENVOI_BASE_URL") or "https://app.band.ai"
         self.client = RestClient(api_key=api_key, base_url=base_url)
-        self.rooms = BandRooms(self.client)
+        self.rooms = BandRooms(self.client, api_key=api_key)
