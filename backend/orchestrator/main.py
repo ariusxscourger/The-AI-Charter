@@ -61,21 +61,27 @@ def get_llm_for(AgentClass):
 
 @app.post("/submit")
 async def submit(payload: SubmissionPayload):
+    print(f"[DEBUG submit] Received proposal for {payload.feature_name}", flush=True)
     session = GovernanceSession(band_client, payload)
     room_id = await session.open()
 
     # Fire all agents concurrently — do not await, return room_id immediately
     async def run_agents():
-        tasks = [
-            AgentClass(get_band_client_for(AgentClass), get_llm_for(AgentClass)).run(room_id, payload)
-            for AgentClass in agents
-        ]
+        print(f"[DEBUG run_agents] Starting agents for room {room_id}", flush=True)
+        tasks = []
+        for AgentClass in agents:
+            llm = get_llm_for(AgentClass)
+            print(f"[DEBUG run_agents] Agent {AgentClass.AGENT_NAME} using LLM provider {llm.provider} with model {llm.model}", flush=True)
+            tasks.append(AgentClass(get_band_client_for(AgentClass), llm).run(room_id, payload))
+            
         results = await asyncio.gather(*tasks, return_exceptions=True)
         for r, AgentClass in zip(results, agents):
             if isinstance(r, Exception):
                 print(f"\n[ERROR] Agent {AgentClass.AGENT_NAME} failed: {r}\n", flush=True)
                 import traceback
                 traceback.print_exception(type(r), r, r.__traceback__)
+            else:
+                print(f"[DEBUG run_agents] Agent {AgentClass.AGENT_NAME} completed successfully", flush=True)
 
     asyncio.create_task(run_agents())
 
