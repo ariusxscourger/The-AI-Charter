@@ -17,8 +17,26 @@ class BandMessage:
     @classmethod
     def from_sdk(cls, chat_message):
         timestamp = chat_message.inserted_at.isoformat() if chat_message.inserted_at else None
+        content_str = chat_message.content or ""
+        # Find the first '{' and last '}' to extract JSON payload if prepended with mentions
+        start_idx = content_str.find('{')
+        end_idx = content_str.rfind('}')
+        
+        if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+            try:
+                parsed = json.loads(content_str[start_idx:end_idx+1])
+                if isinstance(parsed, dict) and "type" in parsed:
+                    return cls(
+                        role=parsed.get("role"),
+                        type=parsed.get("type"),
+                        content=parsed.get("content"),
+                        timestamp=timestamp
+                    )
+            except Exception:
+                pass
+        
         try:
-            parsed = json.loads(chat_message.content)
+            parsed = json.loads(content_str)
             if isinstance(parsed, dict) and "type" in parsed:
                 return cls(
                     role=parsed.get("role"),

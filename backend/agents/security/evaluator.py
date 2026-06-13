@@ -20,10 +20,10 @@ async def evaluate_all_domains(
     llm: LLMClient
 ) -> list[Finding]:
     """
-    Runs all 7 domain evaluations sequentially with a Semaphore of 1
-    to avoid triggering API rate limits (429 Too Many Requests).
+    Runs all 7 domain evaluations concurrently with a Semaphore of 7
+    to avoid triggering API rate limits while maximizing parallel speed.
     """
-    sem = asyncio.Semaphore(1)
+    sem = asyncio.Semaphore(7)
 
     async def evaluate_with_sem(domain: str):
         async with sem:
