@@ -82,13 +82,17 @@ def get_band_client_for(AgentClass) -> BandClient:
     return band_client
 
 def get_llm_for(AgentClass):
+    openrouter_key = os.environ.get("OPENROUTER_API_KEY")
     featherless_key = os.environ.get("FEATHERLESS_API_KEY")
     aiml_key = os.environ.get("AIML_API_KEY")
     
+    openrouter_model = os.environ.get("OPENROUTER_MODEL") or "openrouter/auto"
     featherless_model = os.environ.get("FEATHERLESS_MODEL") or "google/gemma-4-31B-it"
     aiml_model = os.environ.get("AIML_MODEL") or "google/gemma-4-31B-it"
     
-    if featherless_key:
+    if openrouter_key:
+        return LLMClient(provider="openrouter", api_key=openrouter_key, model=openrouter_model)
+    elif featherless_key:
         return LLMClient(provider="featherless", api_key=featherless_key, model=featherless_model)
     elif aiml_key:
         return LLMClient(provider="aiml", api_key=aiml_key, model=aiml_model)
