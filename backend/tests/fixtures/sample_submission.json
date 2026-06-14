@@ -1,0 +1,19 @@
+{
+  "feature_name": "AI-Powered Customer Support Chat",
+  "description": "A chat widget powered by a fine-tuned LLM that answers customer support queries using our internal knowledge base and real-time customer account data. The model has access to order history, billing information, and account status for the authenticated user during each conversation.",
+  "intended_use": "Deployed on the customer portal for authenticated users to resolve common support queries without waiting for a human agent. Handles billing questions, order status, and account management.",
+  "feature_type": "new_feature",
+  "affected_systems": [
+    "Customer Portal",
+    "Billing API",
+    "Order Management",
+    "Identity",
+    "LLM Inference"
+  ],
+  "data_sources": "Internal static knowledge base plus real-time customer order history, billing records, and account status fetched via authenticated API calls at conversation start.",
+  "pii_involved": "yes",
+  "third_party_deps": "OpenAI GPT-4o via API for LLM inference. All customer context including billing data is included in the prompt sent to OpenAI.",
+  "existing_risk_assessment": "Basic internal threat model completed. No external penetration test has been conducted.",
+  "jurisdiction": ["EU", "US"],
+  "compliance_targets": ["GDPR", "SOC 2"]
+}
