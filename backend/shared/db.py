@@ -1,52 +1,42 @@
 import os
-import asyncpg
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker
+from sqlmodel import SQLModel
 
 DATABASE_URL = os.environ.get(
     "DATABASE_URL",
     "postgresql://postgres:postgres_password@localhost:5432/charter_db"
 )
 
-# Replace postgres:// with postgresql:// if needed for asyncpg
+# Convert connection URL to asyncpg driver compatible URL
 if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
+elif DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
 
-db_pool = None
+# Configure SQLModel/SQLAlchemy async engine
+engine = create_async_engine(
+    DATABASE_URL,
+    echo=False,
+    future=True
+)
 
-async def get_db_pool() -> asyncpg.Pool:
-    global db_pool
-    if db_pool is None:
-        db_pool = await asyncpg.create_pool(DATABASE_URL)
-    return db_pool
+async_session_maker = sessionmaker(
+    engine, class_=AsyncSession, expire_on_commit=False
+)
 
 async def init_db():
-    print(f"[DB] Initializing database connection pool with {DATABASE_URL}...", flush=True)
-    pool = await get_db_pool()
-    async with pool.acquire() as conn:
-        # Create users table
-        await conn.execute("""
-            CREATE TABLE IF NOT EXISTS users (
-                id SERIAL PRIMARY KEY,
-                email VARCHAR(255) UNIQUE NOT NULL,
-                password_hash VARCHAR(255) NOT NULL,
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-            );
-        """)
-        # Create governance_records table
-        await conn.execute("""
-            CREATE TABLE IF NOT EXISTS governance_records (
-                id SERIAL PRIMARY KEY,
-                session_id VARCHAR(255) UNIQUE NOT NULL,
-                feature_name VARCHAR(255) NOT NULL,
-                verdict VARCHAR(50) NOT NULL,
-                record_json JSONB NOT NULL,
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-            );
-        """)
-        print("[DB] Tables initialized successfully.", flush=True)
+    print(f"[DB] Initializing SQLModel tables with {DATABASE_URL}...", flush=True)
+    # Import models to register them in SQLModel metadata
+    from shared.models import User, GovernanceRecordModel
+    async with engine.begin() as conn:
+        await conn.run_sync(SQLModel.metadata.create_all)
+    print("[DB] Tables initialized successfully.", flush=True)
 
 async def close_db():
-    global db_pool
-    if db_pool is not None:
-        await db_pool.close()
-        db_pool = None
-        print("[DB] Connection pool closed.", flush=True)
+    await engine.dispose()
+    print("[DB] Connection pool closed.", flush=True)
+
+async def get_session() -> AsyncSession:
+    async with async_session_maker() as session:
+        yield session
