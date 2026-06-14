@@ -103,23 +103,152 @@ export function SubmitProposalClient() {
   }
 
   const handlePrefill = () => {
-    setFeatureName("Smart Customer Support Router")
-    setFeatureType("model_change")
-    setDescription(
-      "An automated router that uses an LLM to categorize incoming support tickets and route them to the appropriate human agent department.",
-    )
-    setIntendedUse(
-      "Used internally by the customer support platform. It reads incoming tickets and appends a 'department' tag. No customer-facing output.",
-    )
-    setAffectedSystemsInput("Zendesk, Support Database")
-    setDataSources("Historical support tickets, customer metadata")
-    setPiiInvolved("yes")
-    setThirdPartyDeps("OpenAI GPT-4 API")
-    setExistingRiskAssessment(
-      "Standard internal data processing policy applies. Vendor assessment for OpenAI is valid until 2027.",
-    )
-    setJurisdictions(["US", "EU"])
-    setComplianceTargets(["GDPR", "SOC2"])
+    const examples = [
+      {
+        featureName: "Smart Customer Support Router",
+        featureType: "model_change" as const,
+        description: "An automated router that uses an LLM to categorize incoming support tickets and route them to the appropriate human agent department.",
+        intendedUse: "Used internally by the customer support platform. It reads incoming tickets and appends a 'department' tag. No customer-facing output.",
+        affectedSystemsInput: "Zendesk, Support Database",
+        dataSources: "Historical support tickets, customer metadata",
+        piiInvolved: "yes" as const,
+        thirdPartyDeps: "OpenAI GPT-4 API",
+        existingRiskAssessment: "Standard internal data processing policy applies. Vendor assessment for OpenAI is valid until 2027.",
+        jurisdictions: ["US", "EU"],
+        complianceTargets: ["GDPR", "SOC2"],
+      },
+      {
+        featureName: "Clinical Trial Patient Matcher",
+        featureType: "new_feature" as const,
+        description: "AI model designed to match patient health records with ongoing clinical trial requirements to accelerate medical research.",
+        intendedUse: "Used by clinical researchers to quickly filter candidates. Requires strict access controls and auditing.",
+        affectedSystemsInput: "EHR System, Clinical Trials DB",
+        dataSources: "Electronic Health Records (EHR), Medical histories",
+        piiInvolved: "yes" as const,
+        thirdPartyDeps: "AWS Comprehend Medical",
+        existingRiskAssessment: "Data is anonymized before leaving the VPC. Requires strict BAAs.",
+        jurisdictions: ["US"],
+        complianceTargets: ["HIPAA", "SOC2"],
+      },
+      {
+        featureName: "Automated Resume Screener",
+        featureType: "model_change" as const,
+        description: "Filters incoming job applications using an NLP model to highlight the top 10% of candidates based on job description fit.",
+        intendedUse: "HR departments use it as a first-pass filter before human review. Must ensure no demographic biases.",
+        affectedSystemsInput: "Workday HRIS",
+        dataSources: "Candidate resumes, LinkedIn profiles",
+        piiInvolved: "yes" as const,
+        thirdPartyDeps: "HuggingFace Transformers",
+        existingRiskAssessment: "Pending fairness and bias audit. Must comply with NYC Local Law 144.",
+        jurisdictions: ["US", "EU", "GB"],
+        complianceTargets: ["GDPR", "EU_AI_ACT"],
+      },
+      {
+        featureName: "Developer Copilot Extension",
+        featureType: "integration" as const,
+        description: "VS Code extension that provides inline code suggestions and detects security vulnerabilities in real-time.",
+        intendedUse: "Used by internal engineering teams to speed up development velocity.",
+        affectedSystemsInput: "GitHub, CI/CD Pipeline",
+        dataSources: "Internal Git repositories, open source code",
+        piiInvolved: "no" as const,
+        thirdPartyDeps: "Anthropic Claude API",
+        existingRiskAssessment: "Code must not be used to train third-party models. Opt-out policies enabled on vendor API.",
+        jurisdictions: ["US", "CA"],
+        complianceTargets: ["ISO27001", "SOC2"],
+      },
+      {
+        featureName: "AI Voice Assistant for Banking",
+        featureType: "new_feature" as const,
+        description: "A generative AI voice bot that handles tier 1 banking inquiries such as checking balances and recent transactions over the phone.",
+        intendedUse: "Direct customer interaction via telephony integration. Voice data is transcribed and fed to the LLM.",
+        affectedSystemsInput: "Twilio, Core Banking API",
+        dataSources: "Voice recordings, Customer transaction history",
+        piiInvolved: "yes" as const,
+        thirdPartyDeps: "Google Cloud Speech-to-Text, OpenAI GPT-4o",
+        existingRiskAssessment: "Strict data minimization applied. Voice recordings are purged after 30 days. PCI-DSS compliance required.",
+        jurisdictions: ["US", "GB", "AU"],
+        complianceTargets: ["SOC2", "ISO27001"],
+      },
+      {
+        featureName: "Predictive Maintenance for Manufacturing",
+        featureType: "model_change" as const,
+        description: "Machine learning model analyzing IoT sensor data to predict equipment failure before it happens on the factory floor.",
+        intendedUse: "Used by floor managers to schedule proactive maintenance. Outputs anomaly scores to a dashboard.",
+        affectedSystemsInput: "IoT Data Lake, Maintenance Scheduler",
+        dataSources: "Machine vibration, temperature, and acoustic sensors",
+        piiInvolved: "no" as const,
+        thirdPartyDeps: "Azure Machine Learning",
+        existingRiskAssessment: "No PII involved. Security review complete. Model is isolated in a private VNET.",
+        jurisdictions: ["EU", "JP"],
+        complianceTargets: ["ISO27001"],
+      },
+      {
+        featureName: "Algorithmic Trading Optimizer",
+        featureType: "integration" as const,
+        description: "RL agent designed to optimize trade execution routing to minimize slippage across multiple dark pools.",
+        intendedUse: "Operates autonomously during market hours to execute large block trades for institutional clients.",
+        affectedSystemsInput: "Order Management System, FIX Gateway",
+        dataSources: "Level 3 market data, Historical order books",
+        piiInvolved: "no" as const,
+        thirdPartyDeps: "None (Proprietary internally trained model)",
+        existingRiskAssessment: "Extensive backtesting and kill-switch implementation verified by internal risk team.",
+        jurisdictions: ["US", "GB"],
+        complianceTargets: ["SOC2"],
+      },
+      {
+        featureName: "Student Essay Grader",
+        featureType: "new_feature" as const,
+        description: "LLM-based tool to provide preliminary grading and constructive feedback on middle-school student essays.",
+        intendedUse: "Used by teachers to speed up grading. Teacher has final say and can override the AI grade.",
+        affectedSystemsInput: "Canvas LMS",
+        dataSources: "Student essays, grading rubrics",
+        piiInvolved: "yes" as const,
+        thirdPartyDeps: "Anthropic Claude API",
+        existingRiskAssessment: "Must comply with COPPA and FERPA. Zero data retention policy enacted with Anthropic.",
+        jurisdictions: ["US", "CA"],
+        complianceTargets: ["SOC2"],
+      },
+      {
+        featureName: "Supply Chain Logistics Predictor",
+        featureType: "other" as const,
+        description: "Forecasting model predicting global shipping delays based on weather, port congestion, and geopolitical news.",
+        intendedUse: "Used by procurement teams to adjust inventory orders dynamically.",
+        affectedSystemsInput: "SAP ERP, Global Dashboard",
+        dataSources: "Public weather APIs, News feeds, Historical shipping times",
+        piiInvolved: "no" as const,
+        thirdPartyDeps: "Google Vertex AI",
+        existingRiskAssessment: "Low risk. Output is purely advisory for internal procurement.",
+        jurisdictions: ["US", "EU", "JP", "AU"],
+        complianceTargets: ["ISO27001"],
+      },
+      {
+        featureName: "Legal Document Summarizer",
+        featureType: "model_change" as const,
+        description: "Fine-tuned model to extract key clauses, liabilities, and dates from 100+ page enterprise contracts.",
+        intendedUse: "Used by paralegals and junior associates to triage inbound contracts during M&A due diligence.",
+        affectedSystemsInput: "Document Management System",
+        dataSources: "Confidential corporate contracts, NDAs",
+        piiInvolved: "yes" as const,
+        thirdPartyDeps: "Azure OpenAI Service",
+        existingRiskAssessment: "Data residency rules applied (EU data stays in EU). Model is not trained on user data.",
+        jurisdictions: ["US", "EU", "GB"],
+        complianceTargets: ["GDPR", "SOC2", "EU_AI_ACT"],
+      }
+    ];
+
+    const randomExample = examples[Math.floor(Math.random() * examples.length)]
+
+    setFeatureName(randomExample.featureName)
+    setFeatureType(randomExample.featureType)
+    setDescription(randomExample.description)
+    setIntendedUse(randomExample.intendedUse)
+    setAffectedSystemsInput(randomExample.affectedSystemsInput)
+    setDataSources(randomExample.dataSources)
+    setPiiInvolved(randomExample.piiInvolved)
+    setThirdPartyDeps(randomExample.thirdPartyDeps)
+    setExistingRiskAssessment(randomExample.existingRiskAssessment)
+    setJurisdictions(randomExample.jurisdictions)
+    setComplianceTargets(randomExample.complianceTargets)
   }
 
   return (
