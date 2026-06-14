@@ -96,7 +96,13 @@ def get_llm_for(AgentClass):
         # Fallback dummy LLM client so it doesn't crash if no keys are provided
         return LLMClient(provider="featherless", api_key="dummy", model="dummy")
 
-@app.post("/submit", response_model=SubmitResponse)
+@app.post(
+    "/submit",
+    response_model=SubmitResponse,
+    summary="Submit Governance Proposal",
+    description="Initiates an AI governance evaluation session. Opens a session in Band, fires all five evaluator agents concurrently, and returns the session ID immediately.",
+    response_description="The unique session ID generated for the evaluation room."
+)
 async def submit(payload: SubmissionPayload):
     print(f"[DEBUG submit] Received proposal for {payload.feature_name}", flush=True)
     session = GovernanceSession(band_client, payload)
@@ -124,7 +130,13 @@ async def submit(payload: SubmissionPayload):
 
     return {"sessionId": room_id}
 
-@app.get("/status/{session_id}", response_model=StatusResponse)
+@app.get(
+    "/status/{session_id}",
+    response_model=StatusResponse,
+    summary="Get Session Status",
+    description="Reads the transcript from the Band.ai evaluation room to dynamically construct the current status. The evaluation status, individual agent votes/confidence, and full activity feed are derived in real-time.",
+    response_description="The current evaluation state of the governance session."
+)
 async def get_status(session_id: str):
     """
     Reads Band room messages to construct SessionStatus.
@@ -147,7 +159,13 @@ async def get_status(session_id: str):
         "activityFeed": feed
     }
 
-@app.get("/record/{session_id}", response_model=GovernanceRecord)
+@app.get(
+    "/record/{session_id}",
+    response_model=GovernanceRecord,
+    summary="Get Governance Record",
+    description="Compiles the finalized governance verdict, agent records, and cross-examination log. It attempts to fetch a cached record from the PostgreSQL database first; if not found, it falls back to parsing the live Band transcript and compiling the record.",
+    response_description="The compiled and final governance evaluation report."
+)
 async def get_record(session_id: str, session: AsyncSession = Depends(get_session)):
     """Compile and return the full governance record from the Band transcript."""
     # Check PostgreSQL database first
@@ -233,7 +251,13 @@ def build_activity_feed(messages) -> list:
             })
     return feed
 
-@app.post("/auth/register", response_model=TokenResponse)
+@app.post(
+    "/auth/register",
+    response_model=TokenResponse,
+    summary="Register User",
+    description="Registers a new user account with an email and password. Generates a secure password hash and returns an authentication JWT.",
+    response_description="Successfully registered user details and JWT auth token."
+)
 async def register(payload: UserRegister, session: AsyncSession = Depends(get_session)):
     email = payload.email.strip()
     password = payload.password
@@ -266,7 +290,13 @@ async def register(payload: UserRegister, session: AsyncSession = Depends(get_se
         "token": token
     }
 
-@app.post("/auth/login", response_model=TokenResponse)
+@app.post(
+    "/auth/login",
+    response_model=TokenResponse,
+    summary="User Login",
+    description="Authenticates user credentials against database records and issues a new JWT authentication token.",
+    response_description="Login status, user details, and JWT auth token."
+)
 async def login(payload: UserLogin, session: AsyncSession = Depends(get_session)):
     email = payload.email.strip()
     password = payload.password
@@ -294,7 +324,12 @@ async def login(payload: UserLogin, session: AsyncSession = Depends(get_session)
         "token": token
     }
 
-@app.post("/records")
+@app.post(
+    "/records",
+    summary="Cache Governance Record",
+    description="Caches or updates a finalized governance record into the local PostgreSQL database, using session_id as a unique index.",
+    response_description="Success message confirmation."
+)
 async def create_record(record: GovernanceRecord, session: AsyncSession = Depends(get_session)):
     record_json = record.model_dump()
     try:
@@ -319,7 +354,13 @@ async def create_record(record: GovernanceRecord, session: AsyncSession = Depend
         await session.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to save record: {e}")
 
-@app.get("/records")
+@app.get(
+    "/records",
+    response_model=list[GovernanceRecord],
+    summary="List Cached Records",
+    description="Retrieves all cached governance records from the local PostgreSQL database ordered by creation date (newest first).",
+    response_description="A list of stored governance records."
+)
 async def list_records(session: AsyncSession = Depends(get_session)):
     result = await session.execute(select(GovernanceRecordModel).order_by(GovernanceRecordModel.created_at.desc()))
     records = result.scalars().all()
