@@ -13,7 +13,10 @@ if os.path.exists(env_path):
 else:
     load_dotenv()
 
-from shared.schemas import SubmissionPayload, SubmitResponse, StatusResponse, GovernanceRecord
+from shared.schemas import (
+    SubmissionPayload, SubmitResponse, StatusResponse, GovernanceRecord,
+    UserRegister, UserLogin, TokenResponse, UserResponse
+)
 from shared.llm_client import LLMClient
 from orchestrator.session import GovernanceSession
 from record.generator import generate_record
@@ -25,7 +28,24 @@ from agents.legal.agent import LegalAgent
 from agents.product.agent import ProductAgent
 from agents.compliance.agent import ComplianceAgent
 
+from shared.db import init_db, close_db, get_session
+from sqlmodel import select
+from sqlmodel.ext.asyncio.session import AsyncSession
+from shared.models import User, GovernanceRecordModel
+from fastapi import Depends
+from passlib.hash import bcrypt
+import jwt
+import json
+
 app = FastAPI(docs_url=None, redoc_url=None)
+
+@app.on_event("startup")
+async def startup_event():
+    await init_db()
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    await close_db()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -76,7 +96,13 @@ def get_llm_for(AgentClass):
         # Fallback dummy LLM client so it doesn't crash if no keys are provided
         return LLMClient(provider="featherless", api_key="dummy", model="dummy")
 
-@app.post("/submit", response_model=SubmitResponse)
+@app.post(
+    "/submit",
+    response_model=SubmitResponse,
+    summary="Submit Governance Proposal",
+    description="Initiates an AI governance evaluation session. Opens a session in Band, fires all five evaluator agents concurrently, and returns the session ID immediately.",
+    response_description="The unique session ID generated for the evaluation room."
+)
 async def submit(payload: SubmissionPayload):
     print(f"[DEBUG submit] Received proposal for {payload.feature_name}", flush=True)
     session = GovernanceSession(band_client, payload)
@@ -104,7 +130,13 @@ async def submit(payload: SubmissionPayload):
 
     return {"sessionId": room_id}
 
-@app.get("/status/{session_id}", response_model=StatusResponse)
+@app.get(
+    "/status/{session_id}",
+    response_model=StatusResponse,
+    summary="Get Session Status",
+    description="Reads the transcript from the Band.ai evaluation room to dynamically construct the current status. The evaluation status, individual agent votes/confidence, and full activity feed are derived in real-time.",
+    response_description="The current evaluation state of the governance session."
+)
 async def get_status(session_id: str):
     """
     Reads Band room messages to construct SessionStatus.
@@ -127,9 +159,28 @@ async def get_status(session_id: str):
         "activityFeed": feed
     }
 
-@app.get("/record/{session_id}", response_model=GovernanceRecord)
-async def get_record(session_id: str):
+@app.get(
+    "/record/{session_id}",
+    response_model=GovernanceRecord,
+    summary="Get Governance Record",
+    description="Compiles the finalized governance verdict, agent records, and cross-examination log. It attempts to fetch a cached record from the PostgreSQL database first; if not found, it falls back to parsing the live Band transcript and compiling the record.",
+    response_description="The compiled and final governance evaluation report."
+)
+async def get_record(session_id: str, session: AsyncSession = Depends(get_session)):
     """Compile and return the full governance record from the Band transcript."""
+    # Check PostgreSQL database first
+    try:
+        result = await session.execute(
+            select(GovernanceRecordModel).where(GovernanceRecordModel.session_id == session_id)
+        )
+        record = result.scalars().first()
+        if record:
+            print(f"[DB] Found cached record for session {session_id}", flush=True)
+            return record.record_json
+    except Exception as db_err:
+        print(f"[DB WARN] Failed to fetch record from DB: {db_err}. Falling back to Band.", flush=True)
+
+    # Fallback to compiling from Band.ai
     try:
         return await generate_record(session_id, band_client)
     except Exception as e:
@@ -199,3 +250,120 @@ def build_activity_feed(messages) -> list:
                 "message": f"voted {m.content.get('vote').upper()} with {m.content.get('confidence')} confidence"
             })
     return feed
+
+@app.post(
+    "/auth/register",
+    response_model=TokenResponse,
+    summary="Register User",
+    description="Registers a new user account with an email and password. Generates a secure password hash and returns an authentication JWT.",
+    response_description="Successfully registered user details and JWT auth token."
+)
+async def register(payload: UserRegister, session: AsyncSession = Depends(get_session)):
+    email = payload.email.strip()
+    password = payload.password
+    if not email or not password:
+        raise HTTPException(status_code=400, detail="Email and password are required")
+    if len(password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters long")
+    
+    existing_result = await session.execute(select(User).where(User.email == email))
+    existing = existing_result.scalars().first()
+    if existing:
+        raise HTTPException(status_code=400, detail="User already exists with this email")
+    
+    password_hash = bcrypt.hash(password)
+    new_user = User(email=email, password_hash=password_hash)
+    session.add(new_user)
+    await session.commit()
+    await session.refresh(new_user)
+    
+    jwt_secret = os.environ.get("JWT_SECRET", "fallback_jwt_secret_hackathon_2026")
+    token = jwt.encode({"userId": new_user.id, "email": new_user.email}, jwt_secret, algorithm="HS256")
+    
+    return {
+        "message": "Registration successful",
+        "user": {
+            "id": new_user.id,
+            "email": new_user.email,
+            "created_at": new_user.created_at
+        },
+        "token": token
+    }
+
+@app.post(
+    "/auth/login",
+    response_model=TokenResponse,
+    summary="User Login",
+    description="Authenticates user credentials against database records and issues a new JWT authentication token.",
+    response_description="Login status, user details, and JWT auth token."
+)
+async def login(payload: UserLogin, session: AsyncSession = Depends(get_session)):
+    email = payload.email.strip()
+    password = payload.password
+    if not email or not password:
+        raise HTTPException(status_code=400, detail="Email and password are required")
+    
+    result = await session.execute(select(User).where(User.email == email))
+    user = result.scalars().first()
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    if not bcrypt.verify(password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    jwt_secret = os.environ.get("JWT_SECRET", "fallback_jwt_secret_hackathon_2026")
+    token = jwt.encode({"userId": user.id, "email": user.email}, jwt_secret, algorithm="HS256")
+    
+    return {
+        "message": "Login successful",
+        "user": {
+            "id": user.id,
+            "email": user.email,
+            "created_at": user.created_at
+        },
+        "token": token
+    }
+
+@app.post(
+    "/records",
+    summary="Cache Governance Record",
+    description="Caches or updates a finalized governance record into the local PostgreSQL database, using session_id as a unique index.",
+    response_description="Success message confirmation."
+)
+async def create_record(record: GovernanceRecord, session: AsyncSession = Depends(get_session)):
+    record_json = record.model_dump()
+    try:
+        from sqlalchemy.dialects.postgresql import insert
+        stmt = insert(GovernanceRecordModel).values(
+            session_id=record.session_id,
+            feature_name=record.feature_name,
+            verdict=record.verdict,
+            record_json=record_json
+        )
+        stmt = stmt.on_conflict_do_update(
+            index_elements=["session_id"],
+            set_={
+                "verdict": stmt.excluded.verdict,
+                "record_json": stmt.excluded.record_json
+            }
+        )
+        await session.execute(stmt)
+        await session.commit()
+        return {"message": "Governance record saved successfully"}
+    except Exception as e:
+        await session.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to save record: {e}")
+
+@app.get(
+    "/records",
+    response_model=list[GovernanceRecord],
+    summary="List Cached Records",
+    description="Retrieves all cached governance records from the local PostgreSQL database ordered by creation date (newest first).",
+    response_description="A list of stored governance records."
+)
+async def list_records(session: AsyncSession = Depends(get_session)):
+    result = await session.execute(select(GovernanceRecordModel).order_by(GovernanceRecordModel.created_at.desc()))
+    records = result.scalars().all()
+    return [r.record_json for r in records]
+
+

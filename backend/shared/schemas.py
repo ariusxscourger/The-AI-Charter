@@ -5,19 +5,19 @@ import uuid
 
 
 class SubmissionPayload(BaseModel):
-    feature_name: str
-    description: str
-    intended_use: str
+    feature_name: str = Field(..., description="The name of the feature or project being submitted for governance review.")
+    description: str = Field(..., description="Detailed explanation of what the feature does and how it operates.")
+    intended_use: str = Field(..., description="The main business purpose or goal of the proposed AI system.")
     feature_type: Literal[
         "new_feature", "model_change", "prompt_change", "integration", "other"
-    ]
-    affected_systems: list[str]
-    data_sources: str
-    pii_involved: Literal["yes", "no", "unknown"]
-    third_party_deps: Optional[str] = None
-    existing_risk_assessment: Optional[str] = None
-    jurisdiction: list[str]
-    compliance_targets: Optional[list[str]] = None
+    ] = Field(..., description="The operational type classification of the changes.")
+    affected_systems: list[str] = Field(..., description="List of internal or external systems integrated with or affected by this feature.")
+    data_sources: str = Field(..., description="Description of the datasets, data feeds, or APIs supplying data to the system.")
+    pii_involved: Literal["yes", "no", "unknown"] = Field(..., description="Indication of whether Personally Identifiable Information (PII) is processed.")
+    third_party_deps: Optional[str] = Field(None, description="Any third-party APIs, libraries, or external vendor integrations utilized.")
+    existing_risk_assessment: Optional[str] = Field(None, description="Reference to any existing risk reviews, security assessments, or compliance audits.")
+    jurisdiction: list[str] = Field(..., description="Geographical territories or legal jurisdictions where this feature will be deployed.")
+    compliance_targets: Optional[list[str]] = Field(None, description="Regulatory frameworks or compliance standards targeted (e.g. GDPR, CCPA, SOC2).")
 
     model_config = {
         "json_schema_extra": {
@@ -41,44 +41,50 @@ class SubmissionPayload(BaseModel):
 
 
 class Finding(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4())[:8])
-    domain: str                            # Which evaluation domain produced this
-    severity: Literal["critical", "high", "medium", "low", "info"]
-    title: str                             # Short, specific — max 80 chars
-    detail: str                            # 2–5 sentence explanation
-    recommendation: Optional[str] = None  # Concrete mitigation step
+    id: str = Field(
+        default_factory=lambda: str(uuid.uuid4())[:8],
+        description="A unique, short identifier for the specific finding."
+    )
+    domain: str = Field(..., description="The evaluator agent domain which flagged this finding (e.g. security, ethics).")
+    severity: Literal["critical", "high", "medium", "low", "info"] = Field(..., description="The risk level classification of this finding.")
+    title: str = Field(..., description="Concise headline summarizing the concern (maximum 80 characters).")
+    detail: str = Field(..., description="A detailed explanation explaining the risks and implications (2-5 sentences).")
+    recommendation: Optional[str] = Field(None, description="An actionable mitigation step or remediation plan.")
 
 
 class AgentRecord(BaseModel):
-    agent_id: str
-    agent_name: str
-    agent_emoji: str
-    vote: Literal["approve", "reject", "flag"]
-    confidence: Literal["high", "medium", "low"]
-    reasoning: str
-    findings: list[Finding]
-    completed_at: str
+    agent_id: str = Field(..., description="The unique identifier of the evaluating agent.")
+    agent_name: str = Field(..., description="Human-readable name of the agent.")
+    agent_emoji: str = Field(..., description="Icon representing the agent.")
+    vote: Literal["approve", "reject", "flag"] = Field(..., description="The agent's decision on the proposal.")
+    confidence: Literal["high", "medium", "low"] = Field(..., description="The confidence level of the agent's decision.")
+    reasoning: str = Field(..., description="Detailed justification explaining the vote decision.")
+    findings: list[Finding] = Field(..., description="List of specific issues or findings highlighted by this agent.")
+    completed_at: str = Field(..., description="Timestamp indicating when the agent finished evaluation.")
 
 
 class CrossExamEntry(BaseModel):
-    timestamp: str
-    from_agent: str
-    to_agent: str
-    challenge: str
-    counter_position: str
+    timestamp: str = Field(..., description="Timestamp of the exchange.")
+    from_agent: str = Field(..., description="The agent raising the challenge.")
+    to_agent: str = Field(..., description="The agent answering the challenge.")
+    challenge: str = Field(..., description="The specific question or objection raised.")
+    counter_position: str = Field(..., description="The response or defense provided by the target agent.")
 
 
 class GovernanceRecord(BaseModel):
-    reference_id: str = Field(default_factory=lambda: str(uuid.uuid4())[:12].upper())
-    session_id: str
-    feature_name: str
-    created_at: str
-    completed_at: str
-    verdict: Literal["approved", "rejected", "conditional_approval", "human_review_required"]
-    conditions: Optional[list[str]] = None
-    submission: SubmissionPayload
-    agent_records: list[AgentRecord]
-    cross_examination_log: list[CrossExamEntry] = []
+    reference_id: str = Field(
+        default_factory=lambda: str(uuid.uuid4())[:12].upper(),
+        description="A globally unique reference code for this finalized record."
+    )
+    session_id: str = Field(..., description="The unique session ID associated with the Band.ai room.")
+    feature_name: str = Field(..., description="The name of the feature under evaluation.")
+    created_at: str = Field(..., description="Timestamp indicating when the session was created.")
+    completed_at: str = Field(..., description="Timestamp indicating when all evaluations concluded.")
+    verdict: Literal["approved", "rejected", "conditional_approval", "human_review_required"] = Field(..., description="The final combined governance decision.")
+    conditions: Optional[list[str]] = Field(None, description="Actionable conditions required if conditional approval is granted.")
+    submission: SubmissionPayload = Field(..., description="The original submission proposal data.")
+    agent_records: list[AgentRecord] = Field(..., description="The individual feedback, reasoning, and findings from each agent.")
+    cross_examination_log: list[CrossExamEntry] = Field(default=[], description="Log of interactive debates and challenges between agents.")
 
     model_config = {
         "json_schema_extra": {
@@ -206,3 +212,26 @@ class StatusResponse(BaseModel):
             ]
         }
     }
+
+
+class UserRegister(BaseModel):
+    email: str
+    password: str
+
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+
+class UserResponse(BaseModel):
+    id: int
+    email: str
+    created_at: datetime
+
+
+class TokenResponse(BaseModel):
+    message: str
+    user: UserResponse
+    token: str
+
