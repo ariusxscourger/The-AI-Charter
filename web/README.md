@@ -20,7 +20,7 @@ bun dev
 ## Commands
 
 - `bun dev` - Start development
-- `bun build` - Build for production  
+- `bun build` - Build for production
 - `bun lint` - Check code
 - `bun format` - Format code
 
