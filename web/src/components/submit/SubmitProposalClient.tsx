@@ -62,6 +62,13 @@ export function SubmitProposalClient() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // If user presses Enter on an input in step 1 or 2, advance to next step instead of submitting
+    if (step < 3) {
+      handleNext()
+      return
+    }
+
     setError(null)
     setSubmitting(true)
 
