@@ -33,7 +33,7 @@ from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from shared.models import User, GovernanceRecordModel
 from fastapi import Depends
-from passlib.hash import bcrypt
+import bcrypt as bcrypt_lib
 import jwt
 import json
 
@@ -271,7 +271,8 @@ async def register(payload: UserRegister, session: AsyncSession = Depends(get_se
     if existing:
         raise HTTPException(status_code=400, detail="User already exists with this email")
     
-    password_hash = bcrypt.hash(password)
+    password_bytes = password.encode('utf-8')
+    password_hash = bcrypt_lib.hashpw(password_bytes, bcrypt_lib.gensalt()).decode('utf-8')
     new_user = User(email=email, password_hash=password_hash)
     session.add(new_user)
     await session.commit()
@@ -308,7 +309,7 @@ async def login(payload: UserLogin, session: AsyncSession = Depends(get_session)
     if not user:
         raise HTTPException(status_code=401, detail="Invalid email or password")
     
-    if not bcrypt.verify(password, user.password_hash):
+    if not bcrypt_lib.checkpw(password.encode('utf-8'), user.password_hash.encode('utf-8')):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     
     jwt_secret = os.environ.get("JWT_SECRET", "fallback_jwt_secret_hackathon_2026")

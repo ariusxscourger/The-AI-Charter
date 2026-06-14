@@ -99,7 +99,55 @@ export async function getGovernanceRecord(sessionId: string): Promise<Governance
     const err = await res.json()
     throw new Error(err.detail || "Failed to compile governance record")
   }
-  return res.json()
+
+  const r = await res.json()
+
+  return {
+    referenceId: r.reference_id,
+    sessionId: r.session_id,
+    featureName: r.feature_name,
+    createdAt: r.created_at,
+    completedAt: r.completed_at,
+    verdict: r.verdict,
+    conditions: r.conditions || [],
+    submission: {
+      featureName: r.submission.feature_name,
+      description: r.submission.description,
+      intendedUse: r.submission.intended_use,
+      featureType: r.submission.feature_type,
+      affectedSystems: r.submission.affected_systems,
+      dataSources: r.submission.data_sources,
+      piiInvolved: r.submission.pii_involved,
+      thirdPartyDeps: r.submission.third_party_deps ?? undefined,
+      existingRiskAssessment: r.submission.existing_risk_assessment ?? undefined,
+      jurisdiction: r.submission.jurisdiction,
+      complianceTargets: r.submission.compliance_targets ?? undefined,
+    },
+    agentRecords: (r.agent_records || []).map((a: any) => ({
+      agentId: a.agent_id,
+      name: a.agent_name,
+      emoji: a.agent_emoji,
+      vote: a.vote,
+      confidence: a.confidence,
+      reasoning: a.reasoning,
+      findings: (a.findings || []).map((f: any) => ({
+        id: f.id,
+        domain: f.domain,
+        severity: f.severity,
+        title: f.title,
+        detail: f.detail,
+        recommendation: f.recommendation ?? undefined,
+      })),
+      completedAt: a.completed_at,
+    })),
+    crossExaminationLog: (r.cross_examination_log || []).map((c: any) => ({
+      timestamp: c.timestamp,
+      fromAgent: c.from_agent,
+      toAgent: c.to_agent,
+      challenge: c.challenge,
+      counterPosition: c.counter_position,
+    })),
+  }
 }
 
 export async function saveRecord(record: GovernanceRecord): Promise<{ message: string }> {
@@ -125,14 +173,14 @@ export async function saveRecord(record: GovernanceRecord): Promise<{ message: s
       jurisdiction: record.submission.jurisdiction,
       compliance_targets: record.submission.complianceTargets || null,
     },
-    agent_records: record.agentRecords.map((a) => ({
+    agent_records: (record.agentRecords || []).map((a) => ({
       agent_id: a.agentId,
       agent_name: a.name,
       agent_emoji: a.emoji,
       vote: a.vote,
       confidence: a.confidence,
       reasoning: a.reasoning,
-      findings: a.findings.map((f) => ({
+      findings: (a.findings || []).map((f) => ({
         id: f.id,
         domain: f.domain,
         severity: f.severity,
@@ -142,7 +190,7 @@ export async function saveRecord(record: GovernanceRecord): Promise<{ message: s
       })),
       completed_at: a.completedAt,
     })),
-    cross_examination_log: record.crossExaminationLog.map((c) => ({
+    cross_examination_log: (record.crossExaminationLog || []).map((c) => ({
       timestamp: c.timestamp,
       from_agent: c.fromAgent,
       to_agent: c.toAgent,
