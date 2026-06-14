@@ -1,3 +1,4 @@
+import React from "react"
 import { cn } from "@/lib/utils"
 
 interface ProgressStepsProps {
@@ -17,26 +18,12 @@ export function ProgressSteps({ currentStep, steps, className }: ProgressStepsPr
             const isActive = stepNum === currentStep
 
             return (
-              <li
-                key={step}
-                className={cn(
-                  "relative flex flex-1 items-center justify-center last:flex-none",
-                  idx !== steps.length - 1 && "w-full",
-                )}
-                aria-current={isActive ? "step" : undefined}
-              >
-                {/* Step Connector Line */}
-                {idx !== steps.length - 1 && (
-                  <div
-                    className={cn(
-                      "absolute top-4 right-0 left-1/2 z-0 h-[2px] w-full -translate-y-1/2",
-                      isCompleted ? "bg-[#76E1A7]" : "bg-[#C7C7C7]",
-                    )}
-                  />
-                )}
-
-                {/* Step Marker */}
-                <div className="relative z-10 flex flex-col items-center">
+              <React.Fragment key={step}>
+                <li
+                  className="relative flex flex-col items-center z-10"
+                  aria-current={isActive ? "step" : undefined}
+                >
+                  {/* Step Marker */}
                   <span
                     className={cn(
                       "flex h-8 w-8 items-center justify-center rounded-full border-2 font-mono text-sm transition-all duration-300",
@@ -50,7 +37,7 @@ export function ProgressSteps({ currentStep, steps, className }: ProgressStepsPr
                   </span>
                   <span
                     className={cn(
-                      "mt-2 hidden text-center text-[10px] uppercase tracking-wider sm:block",
+                      "mt-2 absolute top-full w-32 text-center text-[10px] uppercase tracking-wider hidden sm:block",
                       isActive && "font-bold text-[#1F2937]",
                       isCompleted && "text-[#76E1A7]",
                       !isActive && !isCompleted && "text-[#C7C7C7]",
@@ -58,8 +45,19 @@ export function ProgressSteps({ currentStep, steps, className }: ProgressStepsPr
                   >
                     {step}
                   </span>
-                </div>
-              </li>
+                </li>
+
+                {/* Step Connector Line */}
+                {idx !== steps.length - 1 && (
+                  <li
+                    className={cn(
+                      "flex-1 mx-2 h-[2px] transition-colors duration-300 z-0",
+                      isCompleted ? "bg-[#76E1A7]" : "bg-[#C7C7C7]/50"
+                    )}
+                    aria-hidden="true"
+                  />
+                )}
+              </React.Fragment>
             )
           })}
         </ol>
