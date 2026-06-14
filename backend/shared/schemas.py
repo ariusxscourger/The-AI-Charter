@@ -206,3 +206,26 @@ class StatusResponse(BaseModel):
             ]
         }
     }
+
+
+class UserRegister(BaseModel):
+    email: str
+    password: str
+
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+
+class UserResponse(BaseModel):
+    id: int
+    email: str
+    created_at: datetime
+
+
+class TokenResponse(BaseModel):
+    message: str
+    user: UserResponse
+    token: str
+

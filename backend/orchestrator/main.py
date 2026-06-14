@@ -13,7 +13,10 @@ if os.path.exists(env_path):
 else:
     load_dotenv()
 
-from shared.schemas import SubmissionPayload, SubmitResponse, StatusResponse, GovernanceRecord
+from shared.schemas import (
+    SubmissionPayload, SubmitResponse, StatusResponse, GovernanceRecord,
+    UserRegister, UserLogin, TokenResponse, UserResponse
+)
 from shared.llm_client import LLMClient
 from orchestrator.session import GovernanceSession
 from record.generator import generate_record
@@ -25,7 +28,20 @@ from agents.legal.agent import LegalAgent
 from agents.product.agent import ProductAgent
 from agents.compliance.agent import ComplianceAgent
 
+from shared.db import init_db, close_db, get_db_pool
+from passlib.hash import bcrypt
+import jwt
+import json
+
 app = FastAPI(docs_url=None, redoc_url=None)
+
+@app.on_event("startup")
+async def startup_event():
+    await init_db()
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    await close_db()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -130,6 +146,18 @@ async def get_status(session_id: str):
 @app.get("/record/{session_id}", response_model=GovernanceRecord)
 async def get_record(session_id: str):
     """Compile and return the full governance record from the Band transcript."""
+    # Check PostgreSQL database first
+    try:
+        pool = await get_db_pool()
+        async with pool.acquire() as conn:
+            row = await conn.fetchrow("SELECT record_json FROM governance_records WHERE session_id = $1", session_id)
+            if row:
+                print(f"[DB] Found cached record for session {session_id}", flush=True)
+                return json.loads(row["record_json"])
+    except Exception as db_err:
+        print(f"[DB WARN] Failed to fetch record from DB: {db_err}. Falling back to Band.", flush=True)
+
+    # Fallback to compiling from Band.ai
     try:
         return await generate_record(session_id, band_client)
     except Exception as e:
@@ -199,3 +227,111 @@ def build_activity_feed(messages) -> list:
                 "message": f"voted {m.content.get('vote').upper()} with {m.content.get('confidence')} confidence"
             })
     return feed
+
+@app.post("/auth/register", response_model=TokenResponse)
+async def register(payload: UserRegister):
+    email = payload.email.strip()
+    password = payload.password
+    if not email or not password:
+        raise HTTPException(status_code=400, detail="Email and password are required")
+    if len(password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters long")
+    
+    pool = await get_db_pool()
+    async with pool.acquire() as conn:
+        existing = await conn.fetchval("SELECT id FROM users WHERE email = $1", email)
+        if existing:
+            raise HTTPException(status_code=400, detail="User already exists with this email")
+        
+        password_hash = bcrypt.hash(password)
+        row = await conn.fetchrow(
+            "INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email, created_at",
+            email, password_hash
+        )
+        
+        user_id = row["id"]
+        user_email = row["email"]
+        created_at = row["created_at"]
+        
+        jwt_secret = os.environ.get("JWT_SECRET", "fallback_jwt_secret_hackathon_2026")
+        token = jwt.encode({"userId": user_id, "email": user_email}, jwt_secret, algorithm="HS256")
+        
+        return {
+            "message": "Registration successful",
+            "user": {
+                "id": user_id,
+                "email": user_email,
+                "created_at": created_at
+            },
+            "token": token
+        }
+
+@app.post("/auth/login", response_model=TokenResponse)
+async def login(payload: UserLogin):
+    email = payload.email.strip()
+    password = payload.password
+    if not email or not password:
+        raise HTTPException(status_code=400, detail="Email and password are required")
+    
+    pool = await get_db_pool()
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow("SELECT id, email, password_hash, created_at FROM users WHERE email = $1", email)
+        if not row:
+            raise HTTPException(status_code=401, detail="Invalid email or password")
+        
+        if not bcrypt.verify(password, row["password_hash"]):
+            raise HTTPException(status_code=401, detail="Invalid email or password")
+        
+        user_id = row["id"]
+        user_email = row["email"]
+        created_at = row["created_at"]
+        
+        jwt_secret = os.environ.get("JWT_SECRET", "fallback_jwt_secret_hackathon_2026")
+        token = jwt.encode({"userId": user_id, "email": user_email}, jwt_secret, algorithm="HS256")
+        
+        return {
+            "message": "Login successful",
+            "user": {
+                "id": user_id,
+                "email": user_email,
+                "created_at": created_at
+            },
+            "token": token
+        }
+
+@app.post("/records")
+async def create_record(record: GovernanceRecord):
+    pool = await get_db_pool()
+    async with pool.acquire() as conn:
+        record_json = record.model_dump_json()
+        try:
+            await conn.execute(
+                """
+                INSERT INTO governance_records (session_id, feature_name, verdict, record_json)
+                VALUES ($1, $2, $3, $4)
+                ON CONFLICT (session_id) DO UPDATE
+                SET verdict = EXCLUDED.verdict, record_json = EXCLUDED.record_json
+                """,
+                record.session_id,
+                record.feature_name,
+                record.verdict,
+                record_json
+            )
+            return {"message": "Governance record saved successfully"}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to save record: {e}")
+
+@app.get("/records")
+async def list_records():
+    pool = await get_db_pool()
+    async with pool.acquire() as conn:
+        rows = await conn.fetch("SELECT record_json FROM governance_records ORDER BY created_at DESC")
+        records = []
+        for row in rows:
+            try:
+                records.append(json.loads(row["record_json"]))
+            except Exception:
+                pass
+        return records
+
+
