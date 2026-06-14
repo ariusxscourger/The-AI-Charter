@@ -2,6 +2,8 @@ import os
 import asyncio
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.openapi.docs import get_swagger_ui_html, get_redoc_html
 from dotenv import load_dotenv
 
 # Load env variables from root .env if it exists
@@ -11,7 +13,7 @@ if os.path.exists(env_path):
 else:
     load_dotenv()
 
-from shared.schemas import SubmissionPayload
+from shared.schemas import SubmissionPayload, SubmitResponse, StatusResponse, GovernanceRecord
 from shared.llm_client import LLMClient
 from orchestrator.session import GovernanceSession
 from record.generator import generate_record
@@ -23,13 +25,28 @@ from agents.legal.agent import LegalAgent
 from agents.product.agent import ProductAgent
 from agents.compliance.agent import ComplianceAgent
 
-app = FastAPI()
+app = FastAPI(docs_url=None, redoc_url=None)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"]
 )
+
+# Mount local static files directory
+static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../static")
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
+@app.get("/docs", include_in_schema=False)
+async def custom_swagger_ui_html():
+    return get_swagger_ui_html(
+        openapi_url=app.openapi_url,
+        title=app.title + " - Swagger UI",
+        oauth2_redirect_url=app.swagger_ui_oauth2_redirect_url,
+        swagger_js_url="/static/swagger-ui-bundle.js",
+        swagger_css_url="/static/swagger-ui.css",
+        swagger_favicon_url="/static/favicon.png",
+    )
 
 # Initialise Band client and all 5 agents at startup
 # Prefer the Security Agent key to avoid Human API 403 errors on room creation
@@ -59,7 +76,7 @@ def get_llm_for(AgentClass):
         # Fallback dummy LLM client so it doesn't crash if no keys are provided
         return LLMClient(provider="featherless", api_key="dummy", model="dummy")
 
-@app.post("/submit")
+@app.post("/submit", response_model=SubmitResponse)
 async def submit(payload: SubmissionPayload):
     print(f"[DEBUG submit] Received proposal for {payload.feature_name}", flush=True)
     session = GovernanceSession(band_client, payload)
@@ -87,7 +104,7 @@ async def submit(payload: SubmissionPayload):
 
     return {"sessionId": room_id}
 
-@app.get("/status/{session_id}")
+@app.get("/status/{session_id}", response_model=StatusResponse)
 async def get_status(session_id: str):
     """
     Reads Band room messages to construct SessionStatus.
@@ -110,7 +127,7 @@ async def get_status(session_id: str):
         "activityFeed": feed
     }
 
-@app.get("/record/{session_id}")
+@app.get("/record/{session_id}", response_model=GovernanceRecord)
 async def get_record(session_id: str):
     """Compile and return the full governance record from the Band transcript."""
     try:

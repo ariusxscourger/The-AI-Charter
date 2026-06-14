@@ -77,6 +77,39 @@ async def test_vote_three_medium_pii_flags(agent, pii_submission):
     assert conf == "medium"
 
 @pytest.mark.asyncio
+async def test_vote_two_medium_pii_flags(agent, pii_submission):
+    findings = [
+        Finding(domain="attack_surface", severity="medium", title="Bad 1", detail="Bad"),
+        Finding(domain="data_handling", severity="medium", title="Bad 2", detail="Bad")
+    ]
+    vote, conf, _ = await agent._determine_vote(findings, pii_submission)
+    assert vote == "flag"
+    assert conf == "medium"
+
+@pytest.mark.asyncio
+async def test_vote_four_medium_no_pii_flags(agent, dummy_submission):
+    findings = [
+        Finding(domain="attack_surface", severity="medium", title="Bad 1", detail="Bad"),
+        Finding(domain="data_handling", severity="medium", title="Bad 2", detail="Bad"),
+        Finding(domain="abuse_misuse", severity="medium", title="Bad 3", detail="Bad"),
+        Finding(domain="logging_monitoring", severity="medium", title="Bad 4", detail="Bad")
+    ]
+    vote, conf, _ = await agent._determine_vote(findings, dummy_submission)
+    assert vote == "flag"
+    assert conf == "high"
+
+@pytest.mark.asyncio
+async def test_vote_high_two_medium_rejects(agent, dummy_submission):
+    findings = [
+        Finding(domain="attack_surface", severity="high", title="Bad 1", detail="Bad"),
+        Finding(domain="data_handling", severity="medium", title="Bad 2", detail="Bad"),
+        Finding(domain="abuse_misuse", severity="medium", title="Bad 3", detail="Bad")
+    ]
+    vote, conf, _ = await agent._determine_vote(findings, dummy_submission)
+    assert vote == "reject"
+    assert conf == "high"
+
+@pytest.mark.asyncio
 async def test_vote_medium_no_pii_approves(agent, dummy_submission):
     findings = [
         Finding(domain="attack_surface", severity="medium", title="Bad 1", detail="Bad"),
@@ -93,3 +126,4 @@ async def test_vote_empty_approves_low(agent, dummy_submission):
     vote, conf, _ = await agent._determine_vote(findings, dummy_submission)
     assert vote == "approve"
     assert conf == "low"
+
