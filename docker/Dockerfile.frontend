@@ -1,0 +1,22 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+RUN npm install -g pnpm
+
+# Copy package requirements
+COPY web/package.json web/pnpm-lock.yaml* ./
+RUN pnpm install --ignore-scripts
+
+# Copy frontend source
+COPY web/ .
+
+# Copy environment file for compilation build step
+COPY .env ../.env
+
+# Build Next.js app
+RUN pnpm build
+
+EXPOSE 3000
+
+CMD ["pnpm", "start"]

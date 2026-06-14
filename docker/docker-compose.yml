@@ -1,0 +1,59 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: charter-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_password}
+      POSTGRES_DB: ${POSTGRES_DB:-charter_db}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile.backend
+    container_name: charter-backend
+    restart: always
+    ports:
+      - "8001:8000"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres_password}@db:5432/${POSTGRES_DB:-charter_db}
+      - JWT_SECRET=${JWT_SECRET:-fallback_jwt_secret_hackathon_2026}
+      - BAND_API_KEY=${BAND_API_KEY}
+      - BAND_USER_ID=${BAND_USER_ID}
+      - SECURITY_AGENT_API_KEY=${SECURITY_AGENT_API_KEY}
+      - ETHICS_AGENT_API_KEY=${ETHICS_AGENT_API_KEY}
+      - LEGAL_AGENT_API_KEY=${LEGAL_AGENT_API_KEY}
+      - PRODUCT_AGENT_API_KEY=${PRODUCT_AGENT_API_KEY}
+      - COMPLIANCE_AGENT_API_KEY=${COMPLIANCE_AGENT_API_KEY}
+      - FEATHERLESS_API_KEY=${FEATHERLESS_API_KEY}
+      - FEATHERLESS_BASE_URL=${FEATHERLESS_BASE_URL}
+      - FEATHERLESS_MODEL=${FEATHERLESS_MODEL}
+      - AIML_API_KEY=${AIML_API_KEY}
+      - AIML_BASE_URL=${AIML_BASE_URL}
+      - AIML_MODEL=${AIML_MODEL}
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile.frontend
+    container_name: charter-frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    env_file:
+      - ../.env
+    environment:
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:8001
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+    driver: local
