@@ -4,6 +4,7 @@ import { LandingFooter } from "@/components/landing/LandingFooter"
 import { LandingHeader } from "@/components/landing/LandingHeader"
 import { LandingHero } from "@/components/landing/LandingHero"
 import { LandingPartners } from "@/components/landing/LandingPartners"
+import { LandingTeam } from "@/components/landing/LandingTeam"
 
 export default function Page() {
   return (
@@ -31,6 +32,8 @@ export default function Page() {
       <section className="relative z-10 mx-auto max-w-7xl px-8 pt-20">
         <AgentOverview />
       </section>
+
+      <LandingTeam />
 
       <LandingPartners />
 
