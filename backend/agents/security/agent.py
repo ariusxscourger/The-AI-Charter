@@ -26,9 +26,16 @@ class SecurityAgent(BaseGovernanceAgent):
             vote, confidence = "reject", "high"
         elif severities.count("high") >= 2:
             vote, confidence = "reject", "high"
+        elif "high" in severities and severities.count("medium") >= 2:
+            # Compounded risk: 1 High + 2 or more Mediums is rejection-worthy
+            vote, confidence = "reject", "high"
         elif "high" in severities:
             vote, confidence = "flag", "high"
-        elif severities.count("medium") >= 3 and submission.pii_involved == "yes":
+        elif severities.count("medium") >= 4:
+            # 4 or more medium issues flag the release regardless of PII
+            vote, confidence = "flag", "high"
+        elif severities.count("medium") >= 2 and submission.pii_involved == "yes":
+            # If PII is involved, lower the medium flag threshold to 2+
             vote, confidence = "flag", "medium"
         elif severities:
             vote, confidence = "approve", "medium"

@@ -1,8 +1,11 @@
 import asyncio
 import json
+import logging
 from shared.schemas import SubmissionPayload, Finding
 from shared.llm_client import LLMClient
 from agents.security.prompts import SYSTEM_PROMPT, DOMAIN_CRITERIA, build_domain_user_prompt
+
+logger = logging.getLogger(__name__)
 
 DOMAINS = [
     "data_handling",
@@ -36,11 +39,17 @@ async def evaluate_all_domains(
     results = await asyncio.gather(*tasks, return_exceptions=True)
 
     findings = []
+    failed_domains = []
     for domain, result in zip(DOMAINS, results):
         if isinstance(result, Exception):
-            print(f"[WARN] Domain {domain} failed: {result}")
+            logger.error("Domain %s evaluation failed: %s", domain, result, exc_info=result)
+            failed_domains.append(domain)
         else:
             findings.extend(result)
+
+    if len(failed_domains) == len(DOMAINS):
+        raise RuntimeError("Security evaluation failed completely: all evaluation domains returned errors.")
+
     return findings
 
 
@@ -61,24 +70,30 @@ async def evaluate_domain(
 def parse_findings(raw: str, domain: str) -> list[Finding]:
     """
     Resilient parser. Steps:
-    1. Strip markdown fences if present
+    1. Find outer bounds of the JSON array '[' and ']'
     2. json.loads
     3. Validate each item with Finding schema
     4. Drop invalid items with a warning
     5. Return validated list (may be empty — never raises)
     """
     try:
-        clean = raw.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+        start = raw.find('[')
+        end = raw.rfind(']')
+        if start == -1 or end == -1:
+            logger.warning("Could not find JSON array bounds in LLM output for domain %s.", domain)
+            return []
+        clean = raw[start:end+1]
         items = json.loads(clean)
         if not isinstance(items, list):
+            logger.warning("JSON parsed successfully but is not a list for domain %s.", domain)
             return []
         findings = []
         for item in items:
             try:
                 findings.append(Finding(domain=domain, **item))
             except Exception as e:
-                print(f"[WARN] Dropped invalid finding in {domain}: {e}")
+                logger.warning("Dropped invalid finding in %s: %s", domain, e)
         return findings
     except Exception as e:
-        print(f"[WARN] parse_findings failed for domain {domain}: {e}\nRaw: {raw[:200]}")
+        logger.error("parse_findings failed for domain %s: %s. Raw: %s", domain, e, raw[:200])
         return []

@@ -39,3 +39,15 @@ def test_parse_invalid_severity_drops_item():
     # Should drop the invalid one and keep the valid one
     assert len(findings) == 1
     assert findings[0].severity == "high"
+
+def test_parse_chatter_json():
+    # Robust parsing of JSON wrapped in conversational chatter
+    raw = '''Some introductory chatter here...
+[
+    {"severity": "low", "title": "Test", "detail": "Detail"}
+]
+and some trailing chatter too.'''
+    findings = parse_findings(raw, "data_handling")
+    assert len(findings) == 1
+    assert findings[0].severity == "low"
+

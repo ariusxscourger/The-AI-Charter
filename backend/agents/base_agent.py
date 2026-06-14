@@ -37,8 +37,8 @@ class BaseGovernanceAgent:
         try:
             vote, confidence, reasoning = await self._determine_vote(findings, submission)  # subclass implements
         except Exception as exc:
-            logger.warning("Agent %s vote determination failed: %s. Defaulting to Approve.", self.AGENT_NAME, exc)
-            vote, confidence, reasoning = "approve", "low", f"Fallback approval due to error: {exc}"
+            logger.warning("Agent %s vote determination failed: %s. Defaulting to Flag for human review.", self.AGENT_NAME, exc)
+            vote, confidence, reasoning = "flag", "low", f"Fallback flag for human review due to error: {exc}"
 
         await self._post_vote(room_id, vote, confidence, reasoning, findings)
 
