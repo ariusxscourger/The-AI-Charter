@@ -1,7 +1,8 @@
+import { DashboardLayout } from "@/components/layout/DashboardLayout"
+import { AuthProvider } from "@/context/AuthContext"
 import type { Metadata } from "next"
 import { Fira_Code, Inter } from "next/font/google"
 import "../index.css"
-import { AuthProvider } from "@/context/AuthContext"
 
 const inter = Inter({
   variable: "--font-sans",
@@ -29,7 +30,9 @@ export default function RootLayout({
         className={`${inter.variable} ${firaCode.variable} relative min-h-screen bg-[#FAF8F5] font-sans text-[#1F2937] antialiased`}
         suppressHydrationWarning
       >
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <DashboardLayout>{children}</DashboardLayout>
+        </AuthProvider>
       </body>
     </html>
   )
