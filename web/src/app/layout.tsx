@@ -15,8 +15,54 @@ const firaCode = Fira_Code({
 })
 
 export const metadata: Metadata = {
-  title: "The AI Charter — Governance Panel",
-  description: "A multi-agent governance workflow for responsible AI feature deployment.",
+  title: {
+    default: "The AI Charter — Multi-Agent AI Feature Governance Panel",
+    template: "%s | The AI Charter",
+  },
+  description: "Deploy AI features responsibly with a multi-agent automated auditing and review workflow framework.",
+  keywords: [
+    "AI Governance",
+    "Multi-Agent Workflow",
+    "Responsible AI",
+    "AI Feature Deployment",
+    "Automated Auditing",
+    "AI Safety",
+    "Model Risk Assessment",
+  ],
+  authors: [{ name: "The AI Charter Team" }],
+  creator: "The AI Charter",
+  publisher: "The AI Charter",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  metadataBase: new URL("https://theaicharter.org"), // Default fallback domain
+  openGraph: {
+    title: "The AI Charter — Multi-Agent AI Feature Governance Panel",
+    description: "Deploy AI features responsibly with a multi-agent automated auditing and review workflow framework.",
+    url: "https://theaicharter.org",
+    siteName: "The AI Charter",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "The AI Charter — Multi-Agent AI Feature Governance Panel",
+    description: "Deploy AI features responsibly with a multi-agent automated auditing and review workflow framework.",
+    creator: "@theaicharter",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 }
 
 export default function RootLayout({

@@ -1,8 +1,9 @@
 "use client"
 
+import { Logo } from "@/components/ui/Logo"
 import { useAuth } from "@/context/AuthContext"
 import { motion } from "framer-motion"
-import { Database, Home, LogOut, PanelLeftClose, PanelLeftOpen, Plus } from "lucide-react"
+import { Home, LogOut, PanelLeftClose, PanelLeftOpen, Plus } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
@@ -52,9 +53,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         {/* Sidebar Header */}
         <div className="flex h-16 items-center justify-between px-4 border-b border-[#C7C7C7]/50">
           <div className="flex items-center gap-3 overflow-hidden">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#1F2937] text-[#76E1A7] shadow-[0_0_10px_rgba(118,225,167,0.4)]">
-              <Database className="h-4.5 w-4.5" />
-            </div>
+            <Logo size="md" />
             {!isCollapsed && (
               <motion.span
                 initial={{ opacity: 0 }}

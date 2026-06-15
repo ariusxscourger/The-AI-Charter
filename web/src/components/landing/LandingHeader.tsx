@@ -1,8 +1,8 @@
 "use client"
 
-import { Database } from "lucide-react"
-import Link from "next/link"
+import { Logo } from "@/components/ui/Logo"
 import { useAuth } from "@/context/AuthContext"
+import Link from "next/link"
 
 export function LandingHeader() {
   const { user, logout } = useAuth()
@@ -10,9 +10,7 @@ export function LandingHeader() {
   return (
     <header className="sticky top-0 z-20 flex items-center justify-between border-[#C7C7C7] border-b bg-[#FAF8F5]/90 px-8 py-4 backdrop-blur-md">
       <div className="flex items-center gap-3">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1F2937] text-[#76E1A7] shadow-[0_0_10px_rgba(118,225,167,0.4)]">
-          <Database className="h-4.5 w-4.5" />
-        </div>
+        <Logo size="md" />
         <span className="font-extrabold font-sans text-[#1F2937] text-xl uppercase tracking-tight">THE AI CHARTER</span>
       </div>
 
