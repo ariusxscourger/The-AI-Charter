@@ -48,8 +48,39 @@ class BandMessage:
         )
 
 
-_MOCK_ROOMS: Dict[str, str] = {}
 _MOCK_MESSAGES: Dict[str, List[BandMessage]] = {}
+
+
+def _configured_env(name: str) -> Optional[str]:
+    value = os.environ.get(name)
+    if value and not value.startswith("your_"):
+        return value
+    return None
+
+
+def _api_key_for_role(role: str) -> Optional[str]:
+    prefix = role.upper()
+    candidates = [
+        f"{prefix}_BAND_API_KEY",
+        f"{prefix}_AGENT_API_KEY",
+    ]
+
+    if role == "orchestrator":
+        candidates.extend(
+            [
+                "ORCHESTRATOR_AGENT_API_KEY",
+                "SECURITY_BAND_API_KEY",
+                "SECURITY_AGENT_API_KEY",
+                "BAND_API_KEY",
+            ]
+        )
+
+    for candidate in candidates:
+        value = _configured_env(candidate)
+        if value:
+            return value
+
+    return None
 
 
 class BandRooms:
@@ -150,7 +181,6 @@ class BandRooms:
 
         except Exception as e:
             room_id = f"mock-room-{str(uuid.uuid4())[:8]}"
-            _MOCK_ROOMS[room_id] = name
             _MOCK_MESSAGES[room_id] = []
 
             print(
@@ -303,74 +333,25 @@ class BandRooms:
 
 
 class BandClient:
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: Optional[str] = None):
+        api_key = api_key or _api_key_for_role("orchestrator") or "dummy"
         base_url = (
             os.environ.get("BAND_BASE_URL")
             or os.environ.get("THENVOI_BASE_URL")
             or "https://app.band.ai"
         )
 
+        self.api_key = api_key
+        self._role_clients: Dict[str, "BandClient"] = {}
         self.client = RestClient(api_key=api_key, base_url=base_url)
         self.rooms = BandRooms(self.client, api_key=api_key)
 
+    def for_role(self, role: str) -> "BandClient":
+        api_key = _api_key_for_role(role)
+        if not api_key or api_key == self.api_key:
+            return self
 
-class MultiAgentBandClient:
-    def __init__(self):
-        self.clients: Dict[str, BandClient] = {}
+        if role not in self._role_clients:
+            self._role_clients[role] = BandClient(api_key)
 
-        key_map = {
-            "security": os.environ.get("SECURITY_BAND_API_KEY") or os.environ.get("BAND_API_KEY"),
-            "legal": os.environ.get("LEGAL_BAND_API_KEY"),
-            "ethics": os.environ.get("ETHICS_BAND_API_KEY"),
-            "product": os.environ.get("PRODUCT_BAND_API_KEY"),
-            "compliance": os.environ.get("COMPLIANCE_BAND_API_KEY"),
-            "orchestrator": os.environ.get("ORCHESTRATOR_BAND_API_KEY")
-            or os.environ.get("SECURITY_BAND_API_KEY")
-            or os.environ.get("BAND_API_KEY"),
-        }
-
-        for role, api_key in key_map.items():
-            if api_key:
-                self.clients[role] = BandClient(api_key)
-
-        if "orchestrator" not in self.clients:
-            raise RuntimeError("No orchestrator Band API key configured.")
-
-    def client_for(self, role: str) -> BandClient:
-        client = self.clients.get(role)
-
-        if not client:
-            raise RuntimeError(
-                f"No Band API key configured for role '{role}'. "
-                f"Set {role.upper()}_BAND_API_KEY."
-            )
-
-        return client
-
-    async def create_room(self, name: str, participants: Optional[List[str]] = None):
-        orchestrator = self.client_for("orchestrator")
-
-        room = await orchestrator.rooms.create(name)
-
-        participants = participants or [
-            "security",
-            "legal",
-            "ethics",
-            "product",
-            "compliance",
-        ]
-
-        for role in participants:
-            if role == "orchestrator":
-                continue
-            await orchestrator.rooms.join(room.id, role)
-
-        return room
-
-    async def post_message(self, room_id: str, role: str, type: str, content: Any):
-        sender = self.client_for(role)
-        await sender.rooms.post_message(room_id, role, type, content)
-
-    async def get_messages(self, room_id: str, type_filter: Optional[str] = None):
-        orchestrator = self.client_for("orchestrator")
-        return await orchestrator.rooms.get_messages(room_id, type_filter)
+        return self._role_clients[role]

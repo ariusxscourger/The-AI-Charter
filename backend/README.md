@@ -42,7 +42,7 @@ FastAPI application that orchestrates the governance agents, handles Band.ai roo
 
 ## Folder Structure
 
-- `orchestrator/`: Session management and endpoint routing.
+- `orchestrator/`: Endpoint routing and Band room orchestration.
 - `agents/`: Core governance agent classes (Security, Ethics, Legal, Product, Compliance) inheriting from `BaseGovernanceAgent`.
 - `shared/`: Pydantic validation schemas, LLM integration client, and shared prompt assets.
 - `record/`: Compiles governance reports from the Band.ai transcript history.

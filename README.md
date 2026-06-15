@@ -146,8 +146,7 @@ python verify_governance.py
 The-AI-Charter/
 ├── backend/                        # Python FastAPI backend
 │   ├── orchestrator/
-│   │   ├── main.py                 # FastAPI app — all HTTP endpoints
-│   │   └── session.py              # Band.ai room creation per governance session
+│   │   └── main.py                 # FastAPI app — endpoints and Band room orchestration
 │   ├── agents/
 │   │   ├── base_agent.py           # BaseGovernanceAgent — shared Band lifecycle
 │   │   ├── security/               # Security Agent (reference implementation)

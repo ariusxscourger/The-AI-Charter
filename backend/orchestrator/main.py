@@ -18,9 +18,8 @@ from shared.schemas import (
     UserRegister, UserLogin, TokenResponse, UserResponse
 )
 from shared.llm_client import LLMClient
-from orchestrator.session import GovernanceSession
 from record.generator import generate_record
-from band import BandClient, MultiAgentBandClient
+from band import BandClient
 
 from agents.security.agent import SecurityAgent
 from agents.ethics.agent import EthicsAgent
@@ -71,74 +70,11 @@ async def custom_swagger_ui_html():
 agents = [SecurityAgent, EthicsAgent, LegalAgent, ProductAgent, ComplianceAgent]
 agent_roles = [AgentClass.AGENT_ID for AgentClass in agents]
 
-def _configured_env(name: str) -> str | None:
-    value = os.environ.get(name)
-    if value and not value.startswith("your_"):
-        return value
-    return None
-
-def _alias_env_if_missing(target: str, *sources: str):
-    if _configured_env(target):
-        return
-    for source in sources:
-        value = _configured_env(source)
-        if value:
-            os.environ[target] = value
-            return
-
-def _prepare_band_env_aliases():
-    """
-    band.MultiAgentBandClient uses *_BAND_API_KEY names, while existing docs/envs
-    use *_AGENT_API_KEY. Bridge both so either configuration works.
-    """
-    for role in agent_roles:
-        prefix = role.upper()
-        _alias_env_if_missing(f"{prefix}_BAND_API_KEY", f"{prefix}_AGENT_API_KEY")
-
-    _alias_env_if_missing(
-        "ORCHESTRATOR_BAND_API_KEY",
-        "ORCHESTRATOR_AGENT_API_KEY",
-        "SECURITY_AGENT_API_KEY",
-        "SECURITY_BAND_API_KEY",
-        "BAND_API_KEY",
-    )
-
-def _build_multi_band_client() -> MultiAgentBandClient | None:
-    _prepare_band_env_aliases()
-    try:
-        return MultiAgentBandClient()
-    except RuntimeError as exc:
-        print(f"[WARN] Multi-agent Band client unavailable: {exc}. Using single-client fallback.", flush=True)
-        return None
-
 # Initialise Band client and all 5 agents at startup.
-multi_band_client = _build_multi_band_client()
-if multi_band_client:
-    band_client = multi_band_client.client_for("orchestrator")
-else:
-    orchestrator_key = (
-        _configured_env("ORCHESTRATOR_AGENT_API_KEY")
-        or _configured_env("SECURITY_AGENT_API_KEY")
-        or _configured_env("BAND_API_KEY")
-        or "dummy"
-    )
-    band_client = BandClient(api_key=orchestrator_key)
+band_client = BandClient()
 
 def get_band_client_for(AgentClass) -> BandClient:
-    role = AgentClass.AGENT_ID
-
-    if multi_band_client:
-        try:
-            return multi_band_client.client_for(role)
-        except RuntimeError as exc:
-            print(f"[WARN] {exc} Falling back to orchestrator Band client for {role}.", flush=True)
-
-    agent_key = _configured_env(f"{role.upper()}_BAND_API_KEY") or _configured_env(
-        f"{role.upper()}_AGENT_API_KEY"
-    )
-    if agent_key:
-        return BandClient(api_key=agent_key)
-    return band_client
+    return band_client.for_role(AgentClass.AGENT_ID)
 
 def get_llm_for(AgentClass):
     featherless_key = os.environ.get("FEATHERLESS_API_KEY")
@@ -164,21 +100,18 @@ def get_llm_for(AgentClass):
 )
 async def submit(payload: SubmissionPayload):
     print(f"[DEBUG submit] Received proposal for {payload.feature_name}", flush=True)
-    if multi_band_client:
-        room = await multi_band_client.create_room(
-            name=f"Review: {payload.feature_name}",
-            participants=agent_roles,
-        )
-        room_id = room.id
-        await multi_band_client.post_message(
-            room_id=room_id,
-            role="orchestrator",
-            type="submission_context",
-            content=payload.model_dump(),
-        )
-    else:
-        session = GovernanceSession(band_client, payload)
-        room_id = await session.open()
+    room = await band_client.rooms.create(name=f"Review: {payload.feature_name}")
+    room_id = room.id
+
+    for role in agent_roles:
+        await band_client.rooms.join(room_id, role)
+
+    await band_client.rooms.post_message(
+        room_id=room_id,
+        role="orchestrator",
+        type="submission_context",
+        content=payload.model_dump(),
+    )
 
     # Fire all agents concurrently — do not await, return room_id immediately
     async def run_agents():
