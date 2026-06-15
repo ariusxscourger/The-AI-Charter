@@ -1,6 +1,7 @@
 "use client"
 
-import { Eye, EyeOff, Loader2, ShieldCheck } from "lucide-react"
+import { Logo } from "@/components/ui/Logo"
+import { Eye, EyeOff, Loader2 } from "lucide-react"
 import Link from "next/link"
 import type React from "react"
 import { useState } from "react"
@@ -48,9 +49,7 @@ export function LoginForm() {
       <div className="relative z-10 w-full max-w-md rounded-lg border border-[#C7C7C7] bg-[#FAF8F5] p-8 shadow-xl">
         {/* Header Branding */}
         <div className="mb-8 flex flex-col items-center text-center">
-          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#1F2937] text-[#76E1A7] shadow-[0_0_15px_rgba(118,225,167,0.3)]">
-            <ShieldCheck className="h-6 w-6" />
-          </div>
+          <Logo size="lg" className="mb-3" />
           <h1 className="font-extrabold font-sans text-2xl text-[#1F2937] uppercase tracking-tight">THE AI CHARTER</h1>
           <p className="mt-1 font-mono text-[#1F2937]/60 text-[10px] uppercase tracking-wider">
             Governance Portal Login
