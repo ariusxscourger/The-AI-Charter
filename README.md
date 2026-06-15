@@ -86,6 +86,7 @@ cp .env.example .env
 | `LEGAL_AGENT_API_KEY`    | Per-agent Band key                            | —                             |
 | `PRODUCT_AGENT_API_KEY`  | Per-agent Band key                            | —                             |
 | `COMPLIANCE_AGENT_API_KEY` | Per-agent Band key                          | —                             |
+| `<AGENT>_AGENT_ID`       | Band participant ID for inviting each agent to rooms, e.g. `COMPLIANCE_AGENT_ID` | — |
 | `FEATHERLESS_MODEL`   | Model ID for Featherless                     | `google/gemma-4-31B-it`       |
 | `AIML_MODEL`          | Model ID for AI/ML API                       | `google/gemma-4-31B-it`       |
 | `DATABASE_URL`        | PostgreSQL connection string                 | `postgresql://postgres:postgres_password@localhost:5432/charter_db` |
