@@ -14,18 +14,19 @@ def _get_sem():
 class LLMClient:
     def __init__(
         self,
-        provider: Literal["featherless", "aiml"],
+        provider: Literal["featherless", "aiml", "openrouter"],
         api_key: str,
         model: str
     ):
         self.provider = provider
         self.api_key = api_key
         self.model = model
-        self.base_url = (
-            "https://api.featherless.ai/v1"
-            if provider == "featherless"
-            else "https://api.aimlapi.com/v1"
-        )
+        if provider == "featherless":
+            self.base_url = "https://api.featherless.ai/v1"
+        elif provider == "aiml":
+            self.base_url = "https://api.aimlapi.com/v1"
+        else:
+            self.base_url = "https://openrouter.ai/api/v1"
 
     async def complete(self, system: str, user: str) -> str:
         """
