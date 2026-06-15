@@ -1,6 +1,7 @@
 import { Github, Globe, Linkedin } from "lucide-react"
 import Link from "next/link"
 
+//TODO: ADD YOUR INFO HERE
 const TEAM_MEMBERS = [
   {
     name: "Muhammad Saqib",
