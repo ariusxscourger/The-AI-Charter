@@ -13,8 +13,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
 
   const navItems = [
-    { name: "Hub", href: "/", icon: Home },
-    { name: "Propose", href: "/submit", icon: Plus },
+    { name: "Hub", href: "/dashboard", icon: Home },
+    { name: "Propose", href: "/dashboard/submit", icon: Plus },
   ]
 
   if (loading) {
@@ -31,7 +31,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     )
   }
 
-  if (!user) {
+  const isPublicRoute = pathname === "/" || pathname === "/login" || pathname === "/signup"
+
+  if (!user || isPublicRoute) {
     return <>{children}</>
   }
 
@@ -69,7 +71,11 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         {/* Navigation Links */}
         <div className="flex-1 px-3 py-6 space-y-2">
           {navItems.map((item) => {
-            const isActive = pathname === item.href
+            const isActive =
+              item.href === "/dashboard"
+                ? (pathname.startsWith("/dashboard") && !pathname.startsWith("/dashboard/submit")) ||
+                  pathname.startsWith("/review")
+                : pathname.startsWith(item.href)
             return (
               <Link key={item.name} href={item.href} className="block">
                 <motion.div

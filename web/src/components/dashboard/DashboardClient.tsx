@@ -58,7 +58,7 @@ export function DashboardClient() {
 
             <div className="relative z-10 mt-8 flex flex-wrap gap-4">
               <Link
-                href="/submit"
+                href="/dashboard/submit"
                 className="flex h-10 animate-pulse cursor-pointer items-center justify-center gap-2 rounded-[20px] bg-[#76E1A7] px-5 font-bold text-[#1F2937] text-xs uppercase tracking-wide transition-all hover:bg-[#8BF5BD] hover:shadow-[0_0_15px_rgba(118,225,167,0.5)]"
               >
                 <Plus className="h-4 w-4 stroke-[3px]" />

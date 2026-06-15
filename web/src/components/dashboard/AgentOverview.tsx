@@ -101,7 +101,7 @@ export function AgentOverview() {
   useEffect(() => {
     // Pipeline overall state (flashes lines at the top/bottom)
     const pipelineInterval = setInterval(() => {
-      setPipelineState(prev => (prev + 1) % 4)
+      setPipelineState((prev) => (prev + 1) % 4)
     }, 1500)
 
     // Randomly activate 1-3 agents every 2 seconds to simulate high network traffic
@@ -147,7 +147,6 @@ export function AgentOverview() {
       </div>
 
       <div className="relative z-10 flex flex-col items-center w-full">
-        
         {/* =========================================
             NODE A: USER SUBMISSION 
         ========================================= */}
@@ -162,16 +161,16 @@ export function AgentOverview() {
                 <p className="font-mono text-[9px] text-[#38B0E8] uppercase">Next.js Web Client • POST /submit</p>
               </div>
             </div>
-            <motion.div 
-              animate={{ opacity: [0.3, 1, 0.3] }} 
+            <motion.div
+              animate={{ opacity: [0.3, 1, 0.3] }}
               transition={{ duration: 1.5, repeat: Infinity }}
-              className="h-2 w-2 rounded-full bg-[#38B0E8] shadow-[0_0_8px_#38B0E8]" 
+              className="h-2 w-2 rounded-full bg-[#38B0E8] shadow-[0_0_8px_#38B0E8]"
             />
           </div>
           {/* Connector Down */}
-          <motion.div 
+          <motion.div
             animate={{ opacity: pipelineState === 0 || pipelineState === 1 ? 1 : 0.3 }}
-            className="h-8 w-[2px] bg-gradient-to-b from-[#38B0E8] to-[#76E1A7]" 
+            className="h-8 w-[2px] bg-gradient-to-b from-[#38B0E8] to-[#76E1A7]"
           />
         </div>
 
@@ -187,7 +186,8 @@ export function AgentOverview() {
             </h4>
           </div>
           <p className="relative z-10 font-mono text-[10px] text-[#FAF8F5]/60 mb-3 max-w-lg">
-            FastAPI Orchestrator injects submission payload. All 5 agents connect to this room to evaluate, challenge peers, and establish consensus.
+            FastAPI Orchestrator injects submission payload. All 5 agents connect to this room to evaluate, challenge
+            peers, and establish consensus.
           </p>
           <div className="relative z-10 inline-flex items-center gap-2 rounded bg-[#0A0F18] border border-[#374151] px-3 py-1 font-mono text-[9px] text-[#76E1A7]">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#76E1A7] animate-ping" />
@@ -209,12 +209,12 @@ export function AgentOverview() {
             return (
               <div key={agent.id} className="flex flex-col items-center h-full">
                 {/* Antenna down from Band Hub to Agent */}
-                <motion.div 
-                  animate={{ 
+                <motion.div
+                  animate={{
                     opacity: isActive ? 1 : 0.2,
-                    height: isActive ? "24px" : "16px" 
+                    height: isActive ? "24px" : "16px",
                   }}
-                  className={`w-[2px] mb-1 transition-all ${isActive ? "bg-gradient-to-b from-[#76E1A7] to-[#A1DFF5] shadow-[0_0_8px_#A1DFF5]" : "bg-[#374151]"}`} 
+                  className={`w-[2px] mb-1 transition-all ${isActive ? "bg-gradient-to-b from-[#76E1A7] to-[#A1DFF5] shadow-[0_0_8px_#A1DFF5]" : "bg-[#374151]"}`}
                 />
 
                 <motion.div
@@ -284,7 +284,9 @@ export function AgentOverview() {
                           <span className="inline-block h-2 w-2 rounded-full bg-yellow-500/80" />
                           <span className="inline-block h-2 w-2 rounded-full bg-green-500/80" />
                         </div>
-                        <span className="font-mono text-[#FAF8F5]/40 text-[9px] tracking-widest">{agent.scriptName}</span>
+                        <span className="font-mono text-[#FAF8F5]/40 text-[9px] tracking-widest">
+                          {agent.scriptName}
+                        </span>
                         <Terminal className="h-2.5 w-2.5 text-[#FAF8F5]/20" />
                       </div>
 
@@ -301,12 +303,12 @@ export function AgentOverview() {
                           >
                             {isActive ? (
                               <span className="flex items-start gap-1.5">
-                                <span className="text-[#A1DFF5] opacity-80 mt-[2px] text-[8px]">❯</span> 
+                                <span className="text-[#A1DFF5] opacity-80 mt-[2px] text-[8px]">❯</span>
                                 {agent.statusTexts[currentLogIndex]}
                               </span>
                             ) : (
                               <span className="flex items-start gap-1.5">
-                                <span className="text-[#374151] mt-[2px] text-[8px]">❯</span> 
+                                <span className="text-[#374151] mt-[2px] text-[8px]">❯</span>
                                 Awaiting room activity...
                               </span>
                             )}
@@ -318,12 +320,12 @@ export function AgentOverview() {
                 </motion.div>
 
                 {/* Antenna down from Agent to Ledger */}
-                <motion.div 
-                  animate={{ 
+                <motion.div
+                  animate={{
                     opacity: isActive ? 1 : 0.2,
-                    height: isActive ? "24px" : "16px" 
+                    height: isActive ? "24px" : "16px",
                   }}
-                  className={`w-[2px] mt-1 transition-all ${isActive ? "bg-gradient-to-t from-[#A1DFF5] to-[#76E1A7] shadow-[0_0_8px_#A1DFF5]" : "bg-[#374151]"}`} 
+                  className={`w-[2px] mt-1 transition-all ${isActive ? "bg-gradient-to-t from-[#A1DFF5] to-[#76E1A7] shadow-[0_0_8px_#A1DFF5]" : "bg-[#374151]"}`}
                 />
               </div>
             )
@@ -338,9 +340,9 @@ export function AgentOverview() {
         ========================================= */}
         <div className="flex flex-col items-center w-full max-w-sm mt-2">
           {/* Connector Down */}
-          <motion.div 
+          <motion.div
             animate={{ opacity: pipelineState === 2 || pipelineState === 3 ? 1 : 0.3 }}
-            className="h-8 w-[2px] bg-gradient-to-b from-[#A1DFF5] to-[#38B0E8]" 
+            className="h-8 w-[2px] bg-gradient-to-b from-[#A1DFF5] to-[#38B0E8]"
           />
           <div className="border border-[#A1DFF5]/40 bg-[#111827] rounded-lg p-4 w-full shadow-[0_0_20px_rgba(161,223,245,0.1)] flex items-center justify-between z-20">
             <div className="flex items-center gap-3">
@@ -352,16 +354,15 @@ export function AgentOverview() {
                 <p className="font-mono text-[9px] text-[#A1DFF5] uppercase">PostgreSQL • Frontend Rendering</p>
               </div>
             </div>
-            <motion.div 
-              animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }} 
+            <motion.div
+              animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
               transition={{ duration: 2, repeat: Infinity, delay: 1 }}
-              className="flex h-5 w-5 items-center justify-center rounded-full bg-[#A1DFF5]/20 text-[#A1DFF5]" 
+              className="flex h-5 w-5 items-center justify-center rounded-full bg-[#A1DFF5]/20 text-[#A1DFF5]"
             >
               <CheckCircle2 className="h-3 w-3" />
             </motion.div>
           </div>
         </div>
-
       </div>
     </div>
   )

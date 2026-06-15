@@ -19,10 +19,7 @@ export function ProgressSteps({ currentStep, steps, className }: ProgressStepsPr
 
             return (
               <React.Fragment key={step}>
-                <li
-                  className="relative flex flex-col items-center z-10"
-                  aria-current={isActive ? "step" : undefined}
-                >
+                <li className="relative flex flex-col items-center z-10" aria-current={isActive ? "step" : undefined}>
                   {/* Step Marker */}
                   <span
                     className={cn(
@@ -52,7 +49,7 @@ export function ProgressSteps({ currentStep, steps, className }: ProgressStepsPr
                   <li
                     className={cn(
                       "flex-1 mx-2 h-[2px] transition-colors duration-300 z-0",
-                      isCompleted ? "bg-[#76E1A7]" : "bg-[#C7C7C7]/50"
+                      isCompleted ? "bg-[#76E1A7]" : "bg-[#C7C7C7]/50",
                     )}
                     aria-hidden="true"
                   />

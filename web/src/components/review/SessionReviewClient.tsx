@@ -34,7 +34,7 @@ export function SessionReviewClient() {
     try {
       const record = await getGovernanceRecord(sessionId)
       await saveRecord(record)
-      router.push(`/record/${sessionId}`)
+      router.push(`/dashboard/record/${sessionId}`)
     } catch (err) {
       const error = err as Error
       console.error(error)

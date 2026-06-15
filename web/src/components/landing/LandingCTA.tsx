@@ -10,8 +10,8 @@ export function LandingCTA() {
             Ready to verify model actions?
           </h2>
           <p className="mx-auto max-w-md text-[#FAF8F5]/70 text-xs leading-relaxed">
-            Initialize your local operator node. Connect to the FastAPI backend, run pre-release governance checks,
-            and secure your deployment pipeline.
+            Initialize your local operator node. Connect to the FastAPI backend, run pre-release governance checks, and
+            secure your deployment pipeline.
           </p>
           <div className="flex justify-center gap-4 pt-4">
             <Link

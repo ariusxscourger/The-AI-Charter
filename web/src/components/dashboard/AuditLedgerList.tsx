@@ -115,7 +115,7 @@ export function AuditLedgerList({ records, loading }: AuditLedgerListProps) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2, delay: i * 0.05 }}
               >
-                <Link href={`/record/${record.sessionId}`} className="group block">
+                <Link href={`/dashboard/record/${record.sessionId}`} className="group block">
                   <motion.div whileHover={{ scale: 1.01, translateY: -2 }} transition={{ duration: 0.2 }}>
                     <Card className="border border-[#C7C7C7]/60 py-4 shadow-sm transition-all hover:shadow-md hover:border-[#1F2937] bg-[#FAF8F5]">
                       <div className="mb-2 flex items-center justify-between gap-4">

@@ -3,6 +3,7 @@
 import { Cpu, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
+import { useAuth } from "@/context/AuthContext"
 
 const STEPS = [
   {
@@ -45,6 +46,7 @@ const STEPS = [
 
 export function LandingHero() {
   const [terminalStep, setTerminalStep] = useState(0)
+  const { user } = useAuth()
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -64,17 +66,26 @@ export function LandingHero() {
           COLLABORATIVE MULTI-AGENT GOVERNANCE
         </h1>
         <p className="max-w-md text-[#1F2937]/70 text-sm leading-relaxed">
-          The AI Charter reviews proposed AI features before release. Five specialized, autonomous agents debate
-          ethics, security, compliance, legal liability, and product constraints inside a secure Band.ai room to
-          establish a transparent, audit-hardened release ledger.
+          The AI Charter reviews proposed AI features before release. Five specialized, autonomous agents debate ethics,
+          security, compliance, legal liability, and product constraints inside a secure Band.ai room to establish a
+          transparent, audit-hardened release ledger.
         </p>
         <div className="flex flex-wrap gap-4 pt-2">
-          <Link
-            href="/signup"
-            className="flex h-11 cursor-pointer items-center gap-2 rounded-[22px] border border-[#1F2937]/10 bg-[#76E1A7] px-6 font-black text-[#1F2937] text-xs uppercase tracking-wider transition-all hover:bg-[#8BF5BD] hover:shadow-[0_0_15px_rgba(118,225,167,0.5)]"
-          >
-            INITIALIZE OPERATOR NODE <ArrowRight className="h-4 w-4 stroke-[3px]" />
-          </Link>
+          {user ? (
+            <Link
+              href="/dashboard"
+              className="flex h-11 cursor-pointer items-center gap-2 rounded-[22px] border border-[#1F2937]/10 bg-[#76E1A7] px-6 font-black text-[#1F2937] text-xs uppercase tracking-wider transition-all hover:bg-[#8BF5BD] hover:shadow-[0_0_15px_rgba(118,225,167,0.5)]"
+            >
+              ENTER OPERATOR HUB <ArrowRight className="h-4 w-4 stroke-[3px]" />
+            </Link>
+          ) : (
+            <Link
+              href="/signup"
+              className="flex h-11 cursor-pointer items-center gap-2 rounded-[22px] border border-[#1F2937]/10 bg-[#76E1A7] px-6 font-black text-[#1F2937] text-xs uppercase tracking-wider transition-all hover:bg-[#8BF5BD] hover:shadow-[0_0_15px_rgba(118,225,167,0.5)]"
+            >
+              INITIALIZE OPERATOR NODE <ArrowRight className="h-4 w-4 stroke-[3px]" />
+            </Link>
+          )}
         </div>
       </div>
 
