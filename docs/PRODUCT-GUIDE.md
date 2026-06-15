@@ -196,8 +196,7 @@ The-AI-Charter/
 │
 ├── backend/
 │   ├── orchestrator/
-│   │   ├── main.py                   # FastAPI app — POST /submit, GET /status, GET /record
-│   │   └── session.py                # GovernanceSession — Band room creation
+│   │   └── main.py                   # FastAPI app — endpoints and Band room orchestration
 │   ├── agents/
 │   │   ├── base_agent.py             # BaseGovernanceAgent — Band lifecycle
 │   │   ├── security/
@@ -461,42 +460,23 @@ class LLMClientError(Exception):
 
 ## 7. Backend: Orchestrator
 
-### 7.1 Session Management (`backend/orchestrator/session.py`)
+### 7.1 Session Management (`backend/orchestrator/main.py`)
 
 The orchestrator is the **only** component that creates Band rooms. Agents join rooms — they never create them.
 
 ```python
-from band import BandClient  # Check actual import from Band SDK docs
-from shared.schemas import SubmissionPayload
+room = await band_client.rooms.create(name=f"Review: {payload.feature_name}")
+room_id = room.id
 
-class GovernanceSession:
-    def __init__(self, band_client: BandClient, submission: SubmissionPayload):
-        self.band = band_client
-        self.submission = submission
-        self.room_id: str | None = None
+for role in agent_roles:
+    await band_client.rooms.join(room_id, role)
 
-    async def open(self) -> str:
-        """
-        1. Create a Band room named after the feature
-        2. Post submission payload as the first room message (type: submission_context)
-        3. Return room_id — this becomes the sessionId throughout the system
-        """
-        room = await self.band.rooms.create(
-            name=f"Review: {self.submission.feature_name}"
-        )
-        self.room_id = room.id
-
-        await self.band.rooms.post_message(
-            room_id=self.room_id,
-            role="orchestrator",
-            type="submission_context",
-            content=self.submission.model_dump()
-        )
-        return self.room_id
-
-    async def close(self):
-        if self.room_id:
-            await self.band.rooms.close(self.room_id)
+await band_client.rooms.post_message(
+    room_id=room_id,
+    role="orchestrator",
+    type="submission_context",
+    content=payload.model_dump(),
+)
 ```
 
 **⚠️ Band SDK note:** The method names above (`rooms.create`, `rooms.post_message`, etc.) are illustrative. Read the actual Band SDK docs and hacker guide to get the real method signatures before writing any code that uses Band. Treat these as the interface contract — implement against the real SDK.
@@ -509,7 +489,6 @@ from fastapi.middleware.cors import CORSMiddleware
 import asyncio
 
 from shared.schemas import SubmissionPayload, GovernanceRecord
-from orchestrator.session import GovernanceSession
 from record.generator import generate_record
 from agents.security.agent import SecurityAgent
 from agents.ethics.agent import EthicsAgent
@@ -523,12 +502,23 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 # Initialise Band client and all 5 agents at startup
 band_client = BandClient(api_key=os.environ["BAND_API_KEY"])
 agents = [SecurityAgent, EthicsAgent, LegalAgent, ProductAgent, ComplianceAgent]
+agent_roles = [AgentClass.AGENT_ID for AgentClass in agents]
 
 
 @app.post("/submit")
 async def submit(payload: SubmissionPayload):
-    session = GovernanceSession(band_client, payload)
-    room_id = await session.open()
+    room = await band_client.rooms.create(name=f"Review: {payload.feature_name}")
+    room_id = room.id
+
+    for role in agent_roles:
+        await band_client.rooms.join(room_id, role)
+
+    await band_client.rooms.post_message(
+        room_id=room_id,
+        role="orchestrator",
+        type="submission_context",
+        content=payload.model_dump(),
+    )
 
     # Fire all agents concurrently — do not await, return room_id immediately
     asyncio.gather(*[
@@ -1309,7 +1299,7 @@ Build strictly in this sequence. Each step is testable before moving to the next
 2.  backend/shared/llm_client.py       — LLM client. Test with a single raw call to Featherless.
 3.  backend/shared/cross_exam_prompts.py — Cross-exam prompt builder and parser.
 4.  [READ BAND SDK DOCS]               — Get real method signatures before writing any Band code.
-5.  backend/orchestrator/session.py    — Band room creation. Test: create a room, post one message.
+5.  backend/orchestrator/main.py       — Band room creation. Test: create a room, post one message.
 6.  backend/agents/security/prompts.py — All domain criteria strings.
 7.  backend/agents/security/evaluator.py — Single domain eval, parse output, parallel eval.
 8.  backend/agents/base_agent.py       — Band lifecycle. Test with a mock submission + mock room.

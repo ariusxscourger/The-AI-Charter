@@ -1,5 +1,6 @@
 import pytest
 from agents.security.evaluator import parse_findings
+from agents.compliance.evaluator import parse_findings as parse_compliance_findings
 
 def test_parse_clean_json():
     raw = '''[
@@ -51,3 +52,16 @@ and some trailing chatter too.'''
     assert len(findings) == 1
     assert findings[0].severity == "low"
 
+def test_parse_compliance_findings():
+    raw = '''[
+        {
+            "severity": "medium",
+            "title": "Missing approval evidence",
+            "detail": "Vendor approval is not referenced.",
+            "recommendation": "Attach vendor review evidence."
+        }
+    ]'''
+    findings = parse_compliance_findings(raw, "required_approvals")
+    assert len(findings) == 1
+    assert findings[0].domain == "required_approvals"
+    assert findings[0].severity == "medium"

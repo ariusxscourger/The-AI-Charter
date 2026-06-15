@@ -18,7 +18,6 @@ from shared.schemas import (
     UserRegister, UserLogin, TokenResponse, UserResponse
 )
 from shared.llm_client import LLMClient
-from orchestrator.session import GovernanceSession
 from record.generator import generate_record
 from band import BandClient
 
@@ -68,18 +67,14 @@ async def custom_swagger_ui_html():
         swagger_favicon_url="/static/favicon.png",
     )
 
-# Initialise Band client and all 5 agents at startup
-# Prefer the Security Agent key to avoid Human API 403 errors on room creation
-orchestrator_key = os.environ.get("SECURITY_AGENT_API_KEY") or os.environ.get("BAND_API_KEY", "dummy")
-band_client = BandClient(api_key=orchestrator_key)
 agents = [SecurityAgent, EthicsAgent, LegalAgent, ProductAgent, ComplianceAgent]
+agent_roles = [AgentClass.AGENT_ID for AgentClass in agents]
+
+# Initialise Band client and all 5 agents at startup.
+band_client = BandClient()
 
 def get_band_client_for(AgentClass) -> BandClient:
-    key_name = f"{AgentClass.AGENT_ID.upper()}_AGENT_API_KEY"
-    agent_key = os.environ.get(key_name)
-    if agent_key and not agent_key.startswith("your_"):
-        return BandClient(api_key=agent_key)
-    return band_client
+    return band_client.for_role(AgentClass.AGENT_ID)
 
 def get_llm_for(AgentClass):
     openrouter_key = os.environ.get("OPENROUTER_API_KEY")
@@ -109,8 +104,18 @@ def get_llm_for(AgentClass):
 )
 async def submit(payload: SubmissionPayload):
     print(f"[DEBUG submit] Received proposal for {payload.feature_name}", flush=True)
-    session = GovernanceSession(band_client, payload)
-    room_id = await session.open()
+    room = await band_client.rooms.create(name=f"Review: {payload.feature_name}")
+    room_id = room.id
+
+    for role in agent_roles:
+        await band_client.rooms.join(room_id, role)
+
+    await band_client.rooms.post_message(
+        room_id=room_id,
+        role="orchestrator",
+        type="submission_context",
+        content=payload.model_dump(),
+    )
 
     # Fire all agents concurrently — do not await, return room_id immediately
     async def run_agents():
@@ -369,5 +374,3 @@ async def list_records(session: AsyncSession = Depends(get_session)):
     result = await session.execute(select(GovernanceRecordModel).order_by(GovernanceRecordModel.created_at.desc()))
     records = result.scalars().all()
     return [r.record_json for r in records]
-
-
