@@ -86,6 +86,7 @@ cp .env.example .env
 | `LEGAL_AGENT_API_KEY`    | Per-agent Band key                            | —                             |
 | `PRODUCT_AGENT_API_KEY`  | Per-agent Band key                            | —                             |
 | `COMPLIANCE_AGENT_API_KEY` | Per-agent Band key                          | —                             |
+| `<AGENT>_AGENT_ID`       | Band participant ID for inviting each agent to rooms, e.g. `COMPLIANCE_AGENT_ID` | — |
 | `FEATHERLESS_MODEL`   | Model ID for Featherless                     | `google/gemma-4-31B-it`       |
 | `AIML_MODEL`          | Model ID for AI/ML API                       | `google/gemma-4-31B-it`       |
 | `DATABASE_URL`        | PostgreSQL connection string                 | `postgresql://postgres:postgres_password@localhost:5432/charter_db` |
@@ -145,8 +146,7 @@ python verify_governance.py
 The-AI-Charter/
 ├── backend/                        # Python FastAPI backend
 │   ├── orchestrator/
-│   │   ├── main.py                 # FastAPI app — all HTTP endpoints
-│   │   └── session.py              # Band.ai room creation per governance session
+│   │   └── main.py                 # FastAPI app — endpoints and Band room orchestration
 │   ├── agents/
 │   │   ├── base_agent.py           # BaseGovernanceAgent — shared Band lifecycle
 │   │   ├── security/               # Security Agent (reference implementation)
@@ -220,7 +220,7 @@ The-AI-Charter/
 | ⚖️ **Ethics**       | Fairness, bias, potential for harm, values alignment                 | Featherless.ai  | Stub           |
 | 📜 **Legal**        | Regulatory exposure, IP concerns, jurisdictional requirements        | Featherless.ai  | Stub           |
 | 🚀 **Product**      | User impact, UX implications, business rationale                     | AI/ML API       | Stub           |
-| ✅ **Compliance**   | Alignment with internal policies and external standards (GDPR, SOC2) | AI/ML API       | Stub           |
+| ✅ **Compliance**   | Policy checklists, standards coverage, audit evidence, approvals     | Featherless.ai  | **Implemented** |
 
 ### The Workflow
 
@@ -312,7 +312,7 @@ flowchart TD
 
 ## Building / Modifying Agents
 
-The **Security Agent** is the reference implementation. The other four agents (Ethics, Legal, Product, Compliance) follow the exact same pattern.
+The **Security Agent** is the reference implementation. The Compliance Agent now follows the same full pattern; Ethics, Legal, and Product remain lightweight stubs.
 
 ### Agent Anatomy
 
@@ -374,6 +374,9 @@ The base class handles the entire Band lifecycle — joining the room, posting s
 | `backend/agents/security/agent.py` | Complete agent implementation with vote logic |
 | `backend/agents/security/evaluator.py` | Parallel domain evaluation with rate limiting |
 | `backend/agents/security/prompts.py` | Prompt structure, domain criteria format |
+| `backend/agents/compliance/agent.py` | Compliance implementation with deterministic governance vote logic |
+| `backend/agents/compliance/evaluator.py` | Policy checklist, standards, documentation, governance, and approval checks |
+| `backend/agents/compliance/prompts.py` | Compliance prompt structure and control criteria |
 | `backend/shared/schemas.py` | `Finding`, `SubmissionPayload`, `AgentRecord` schemas |
 | `backend/shared/llm_client.py` | LLM client with retry logic |
 | `backend/shared/cross_exam_prompts.py` | Cross-examination prompt builder |
