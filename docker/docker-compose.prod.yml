@@ -1,0 +1,58 @@
+name: the-ai-charter-prod
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: charter-postgres-prod
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_password_super_secure}
+      POSTGRES_DB: ${POSTGRES_DB:-charter_db}
+    # Note: We do NOT expose ports to the host machine for security. 
+    # The database is only accessible to containers on the same Docker network.
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile.backend
+    container_name: charter-backend-prod
+    restart: always
+    # Expose the API only internally if you are putting an Nginx/Traefik reverse proxy in front.
+    # We leave port 8000 exposed to the host for now so the frontend can hit it if they are hosted on the same IP.
+    ports:
+      - "8001:8000"
+    env_file:
+      - ../.env
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres_password_super_secure}@db:5432/${POSTGRES_DB:-charter_db}
+      - JWT_SECRET=${JWT_SECRET} # Force this to be defined in .env for production
+      - ENV=production
+    # No 'volumes' or 'command' overrides. Docker will bake the code into the image 
+    # and run the production server command defined in Dockerfile.backend.
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile.frontend
+    container_name: charter-frontend-prod
+    restart: always
+    ports:
+      - "80:3000" # Map port 80 (HTTP) to the Next.js port 3000
+    env_file:
+      - ../.env
+    environment:
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:8001 # Make sure this points to your production backend URL
+      - NODE_ENV=production
+    # No 'volumes' or 'command' overrides. Docker will bake the code into the image 
+    # and run the 'pnpm start' production server command defined in Dockerfile.frontend.
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data_prod:
+    driver: local
