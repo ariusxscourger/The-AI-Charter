@@ -12,20 +12,20 @@ The backend loads this file from the repo root. Docker Compose also mounts it in
 
 ## Band.ai
 
-| Variable | Required | Purpose |
-|----------|----------|---------|
-| `BAND_API_KEY` | Yes (for real rooms) | Orchestrator API key for room creation |
-| `BAND_USER_ID` | Yes (for real rooms) | Human participant ID (room owner) |
-| `SECURITY_AGENT_API_KEY` | No | Falls back to `BAND_API_KEY` |
-| `ETHICS_AGENT_API_KEY` | No | Falls back to `BAND_API_KEY` |
-| `LEGAL_AGENT_API_KEY` | No | Falls back to `BAND_API_KEY` |
-| `PRODUCT_AGENT_API_KEY` | No | Falls back to `BAND_API_KEY` |
-| `COMPLIANCE_AGENT_API_KEY` | No | Falls back to `BAND_API_KEY` |
-| `SECURITY_AGENT_ID` | Yes (for real agent invites) | Band participant ID for Security agent |
-| `ETHICS_AGENT_ID` | Yes | Band participant ID for Ethics agent |
-| `LEGAL_AGENT_ID` | Yes | Band participant ID for Legal agent |
-| `PRODUCT_AGENT_ID` | Yes | Band participant ID for Product agent |
-| `COMPLIANCE_AGENT_ID` | Yes | Band participant ID for Compliance agent |
+| Variable                   | Required                     | Purpose                                  |
+| -------------------------- | ---------------------------- | ---------------------------------------- |
+| `BAND_API_KEY`             | Yes (for real rooms)         | Orchestrator API key for room creation   |
+| `BAND_USER_ID`             | Yes (for real rooms)         | Human participant ID (room owner)        |
+| `SECURITY_AGENT_API_KEY`   | No                           | Falls back to `BAND_API_KEY`             |
+| `ETHICS_AGENT_API_KEY`     | No                           | Falls back to `BAND_API_KEY`             |
+| `LEGAL_AGENT_API_KEY`      | No                           | Falls back to `BAND_API_KEY`             |
+| `PRODUCT_AGENT_API_KEY`    | No                           | Falls back to `BAND_API_KEY`             |
+| `COMPLIANCE_AGENT_API_KEY` | No                           | Falls back to `BAND_API_KEY`             |
+| `SECURITY_AGENT_ID`        | Yes (for real agent invites) | Band participant ID for Security agent   |
+| `ETHICS_AGENT_ID`          | Yes                          | Band participant ID for Ethics agent     |
+| `LEGAL_AGENT_ID`           | Yes                          | Band participant ID for Legal agent      |
+| `PRODUCT_AGENT_ID`         | Yes                          | Band participant ID for Product agent    |
+| `COMPLIANCE_AGENT_ID`      | Yes                          | Band participant ID for Compliance agent |
 
 Values starting with `your_` are treated as unconfigured. See `_configured_env()` in [`backend/band.py`](../../backend/band.py).
 
@@ -39,15 +39,15 @@ Without valid Band keys, the system falls back to **mock rooms** (`mock-room-*`)
 
 At least one provider is recommended for meaningful agent evaluations.
 
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `LLM_PROVIDER` | — | Required when more than one provider key is set. One of `openrouter`, `featherless`, `aiml` |
-| `OPENROUTER_API_KEY` | — | OpenRouter API key |
-| `OPENROUTER_MODEL` | `openrouter/auto` | Model ID |
-| `FEATHERLESS_API_KEY` | — | Featherless API key |
-| `FEATHERLESS_MODEL` | `google/gemma-4-31B-it` | Model ID |
-| `AIML_API_KEY` | — | AI/ML API key |
-| `AIML_MODEL` | `google/gemma-4-31B-it` | Model ID |
+| Variable              | Default                 | Purpose                                                                                     |
+| --------------------- | ----------------------- | ------------------------------------------------------------------------------------------- |
+| `LLM_PROVIDER`        | —                       | Required when more than one provider key is set. One of `openrouter`, `featherless`, `aiml` |
+| `OPENROUTER_API_KEY`  | —                       | OpenRouter API key                                                                          |
+| `OPENROUTER_MODEL`    | `openrouter/auto`       | Model ID                                                                                    |
+| `FEATHERLESS_API_KEY` | —                       | Featherless API key                                                                         |
+| `FEATHERLESS_MODEL`   | `google/gemma-4-31B-it` | Model ID                                                                                    |
+| `AIML_API_KEY`        | —                       | AI/ML API key                                                                               |
+| `AIML_MODEL`          | `google/gemma-4-31B-it` | Model ID                                                                                    |
 
 Provider selection in [`backend/orchestrator/main.py`](../../backend/orchestrator/main.py) (`get_llm_for()`):
 
@@ -65,10 +65,10 @@ When multiple keys are configured and `LLM_PROVIDER` is missing, startup evaluat
 
 ## Application
 
-| Variable | Default | Purpose |
-|----------|---------|---------|
+| Variable       | Default                                                             | Purpose               |
+| -------------- | ------------------------------------------------------------------- | --------------------- |
 | `DATABASE_URL` | `postgresql://postgres:postgres_password@localhost:5432/charter_db` | PostgreSQL connection |
-| `JWT_SECRET` | `fallback_jwt_secret_hackathon_2026` | JWT signing for auth |
+| `JWT_SECRET`   | `fallback_jwt_secret_hackathon_2026`                                | JWT signing for auth  |
 
 Docker Compose overrides `DATABASE_URL` to point at the `db` service internally.
 
@@ -76,11 +76,10 @@ Docker Compose overrides `DATABASE_URL` to point at the `db` service internally.
 
 ## Frontend (Next.js)
 
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `NEXT_PUBLIC_API_BASE_URL` | `http://localhost:8000` | Backend URL for browser requests |
-| `NEXT_PUBLIC_POLL_INTERVAL_MS` | `3000` | Review page polling interval |
-| `NEXT_PUBLIC_TEST` | `"test"` | Optional debug flag |
+| Variable                       | Default                 | Purpose                          |
+| ------------------------------ | ----------------------- | -------------------------------- |
+| `NEXT_PUBLIC_API_BASE_URL`     | `http://localhost:8000` | Backend URL for browser requests |
+| `NEXT_PUBLIC_POLL_INTERVAL_MS` | `3000`                  | Review page polling interval     |
 
 **Docker:** set `NEXT_PUBLIC_API_BASE_URL=http://localhost:8001` (or rely on compose `environment` override).
 
@@ -92,21 +91,21 @@ Validated in [`web/src/env.ts`](../../web/src/env.ts). `DATABASE_URL` and `JWT_S
 
 Used by [`docker/docker-compose.yml`](../../docker/docker-compose.yml):
 
-| Variable | Default |
-|----------|---------|
-| `POSTGRES_USER` | `postgres` |
+| Variable            | Default             |
+| ------------------- | ------------------- |
+| `POSTGRES_USER`     | `postgres`          |
 | `POSTGRES_PASSWORD` | `postgres_password` |
-| `POSTGRES_DB` | `charter_db` |
+| `POSTGRES_DB`       | `charter_db`        |
 
 ---
 
 ## Hackathon promos
 
-| Service | Promo | Benefit |
-|---------|-------|---------|
-| Band.ai | `BANDHACK26` | 100% off Band Pro for 1 month |
-| Featherless | `BOA26` | $25 credits |
-| AI/ML API | — | $10 credits per participant at aimlapi.com |
+| Service     | Promo        | Benefit                                    |
+| ----------- | ------------ | ------------------------------------------ |
+| Band.ai     | `BANDHACK26` | 100% off Band Pro for 1 month              |
+| Featherless | `BOA26`      | $25 credits                                |
+| AI/ML API   | —            | $10 credits per participant at aimlapi.com |
 
 ---
 
