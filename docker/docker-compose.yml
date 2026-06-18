@@ -25,7 +25,6 @@ services:
     env_file:
       - ../.env
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres_password}@db:5432/${POSTGRES_DB:-charter_db}
       - JWT_SECRET=${JWT_SECRET:-fallback_jwt_secret_hackathon_2026}
     volumes:
       - ../backend:/app
