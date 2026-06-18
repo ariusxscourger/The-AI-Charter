@@ -6,6 +6,8 @@ Before an AI feature ships, five specialized agents review the proposal, debate 
 
 ![Status](https://img.shields.io/badge/status-hackathon%20project-orange) ![Track](https://img.shields.io/badge/hackathon-Regulated%20Workflows-blueviolet) ![Stack](https://img.shields.io/badge/stack-Python%20%2B%20Next.js-blue)
 
+**Full documentation:** [DOCS.md](./DOCS.md) — setup, architecture, design, ADRs, and contributing guides.
+
 ---
 
 ## Table of Contents
@@ -51,8 +53,8 @@ The stack is now running:
 
 ## Prerequisites
 
-- **Python 3.11+**
-- **Node.js 20+** and **pnpm**
+- **Python 3.11+** and **[Pipenv](https://pipenv.pypa.io/)**
+- **Node.js 20+** and **[Bun](https://bun.sh/)**
 - **PostgreSQL 15** (or use Docker)
 - **Band.ai account** — [band.ai](https://www.band.ai/) (free tier works; use promo `BANDHACK26` for Pro)
 - **Featherless.ai API key** — [featherless.ai](https://featherless.ai/) (promo `BOA26` for $25 credits)
@@ -63,34 +65,7 @@ The stack is now running:
 
 ## Environment Setup
 
-Copy `.env.example` to the project root and fill in your keys:
-
-```bash
-cp .env.example .env
-```
-
-### Required Keys
-
-| Variable              | Purpose                                      | Where to get it               |
-| --------------------- | -------------------------------------------- | ----------------------------- |
-| `BAND_API_KEY`        | Band.ai room creation and messaging          | [band.ai](https://band.ai)    |
-| `FEATHERLESS_API_KEY` | LLM inference for Ethics, Security, Legal    | [featherless.ai](https://featherless.ai) |
-| `AIML_API_KEY`        | LLM inference for Product, Compliance        | [aimlapi.com](https://aimlapi.com) |
-
-### Optional Keys
-
-| Variable              | Purpose                                      | Default                       |
-| --------------------- | -------------------------------------------- | ----------------------------- |
-| `SECURITY_AGENT_API_KEY` | Per-agent Band key (fallback to BAND_API_KEY) | —                             |
-| `ETHICS_AGENT_API_KEY`   | Per-agent Band key                            | —                             |
-| `LEGAL_AGENT_API_KEY`    | Per-agent Band key                            | —                             |
-| `PRODUCT_AGENT_API_KEY`  | Per-agent Band key                            | —                             |
-| `COMPLIANCE_AGENT_API_KEY` | Per-agent Band key                          | —                             |
-| `<AGENT>_AGENT_ID`       | Band participant ID for inviting each agent to rooms, e.g. `COMPLIANCE_AGENT_ID` | — |
-| `FEATHERLESS_MODEL`   | Model ID for Featherless                     | `google/gemma-4-31B-it`       |
-| `AIML_MODEL`          | Model ID for AI/ML API                       | `google/gemma-4-31B-it`       |
-| `DATABASE_URL`        | PostgreSQL connection string                 | `postgresql://postgres:postgres_password@localhost:5432/charter_db` |
-| `JWT_SECRET`          | JWT signing secret                           | `fallback_jwt_secret_hackathon_2026` |
+Copy `.env.example` to the project root and fill in your keys. See [docs/setup/ENVIRONMENT.md](./docs/setup/ENVIRONMENT.md) for the full variable reference, fallbacks, and hackathon promo codes.
 
 ---
 
@@ -111,25 +86,22 @@ This starts PostgreSQL, the FastAPI backend (port 8001), and the Next.js fronten
 
 ```bash
 cd backend
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-
-# Start PostgreSQL (via Docker or local install)
-# Then run migrations and start the server:
-alembic upgrade head
-uvicorn orchestrator.main:app --reload --port 8000
+pipenv install
+pipenv run alembic upgrade head
+pipenv run uvicorn orchestrator.main:app --reload --port 8000
 ```
 
 **Frontend:**
 
 ```bash
 cd web
-pnpm install
-pnpm dev
+bun install
+bun dev
 ```
 
 Frontend runs on http://localhost:3000, backend on http://localhost:8000.
+
+See [docs/setup/LOCAL_DEVELOPMENT.md](./docs/setup/LOCAL_DEVELOPMENT.md) for Windows notes, port matrix, and smoke test steps.
 
 ### Option C: End-to-end verification script
 
@@ -153,10 +125,10 @@ The-AI-Charter/
 │   │   │   ├── agent.py            # Vote logic, LLM reasoning generation
 │   │   │   ├── evaluator.py        # 7 domain evaluators, parallel execution
 │   │   │   └── prompts.py          # System/user prompts, domain criteria
-│   │   ├── ethics/agent.py         # Ethics Agent (stub — needs implementation)
-│   │   ├── legal/agent.py          # Legal Agent (stub — needs implementation)
-│   │   ├── product/agent.py        # Product Agent (stub — needs implementation)
-│   │   └── compliance/agent.py     # Compliance Agent (stub — needs implementation)
+│   │   ├── ethics/                 # Ethics Agent
+│   │   ├── legal/                  # Legal Agent
+│   │   ├── product/                # Product Agent
+│   │   └── compliance/             # Compliance Agent
 │   ├── shared/
 │   │   ├── schemas.py              # Pydantic models (SubmissionPayload, Finding, GovernanceRecord, etc.)
 │   │   ├── llm_client.py           # LLM client (Featherless + AI/ML API, retry logic)
@@ -173,17 +145,18 @@ The-AI-Charter/
 ├── web/                            # Next.js 16 frontend
 │   └── src/
 │       ├── app/
-│       │   ├── page.tsx            # Landing page + Dashboard
+│       │   ├── page.tsx            # Landing page
 │       │   ├── login/page.tsx      # Login form
 │       │   ├── signup/page.tsx     # Registration form
-│       │   ├── submit/page.tsx     # Multi-step submission form
-│       │   ├── review/[sessionId]/ # Live review with polling
-│       │   └── record/[sessionId]/ # Governance record viewer
+│       │   ├── dashboard/          # Operator hub, submit, record, ledgers, settings
+│       │   └── review/[sessionId]/ # Live review with polling
 │       ├── components/
 │       │   ├── ui/                 # Badge, Card, Button, Collapsible, ProgressSteps
-│       │   ├── submission/         # StepOverview, StepRisk, StepReview (placeholders)
-│       │   ├── review/             # AgentCard, ActivityFeed (placeholders)
-│       │   └── record/             # AgentVoteCard, FindingsList, VerdictBlock (placeholders)
+│       │   ├── landing/            # Marketing page sections
+│       │   ├── dashboard/          # Hub widgets, ledger list, metrics
+│       │   ├── submit/             # Multi-step submission form
+│       │   ├── review/             # Live session review
+│       │   └── record/             # Governance record viewer
 │       ├── lib/
 │       │   ├── api.ts              # All API calls (snake_case ↔ camelCase translation)
 │       │   ├── poll.ts             # usePolling hook
@@ -197,10 +170,16 @@ The-AI-Charter/
 │   └── Dockerfile.frontend         # Node 20 + pnpm + Next.js build
 │
 ├── docs/
+│   ├── setup/                      # Local dev, env vars, troubleshooting
+│   ├── architecture/               # System overview, backend, frontend, agents
+│   ├── design/                     # UI system, API contracts
+│   ├── adr/                        # Architecture Decision Records
+│   ├── CONTRIBUTING.md             # Contribution guide
 │   ├── PRODUCT-GUIDE.md            # Full product spec (schemas, API, build order)
 │   ├── HACKATHON.md                # Hackathon details, prizes, submission guide
 │   └── BRAND_IDENTITY_DESIGN_SYSTEM.md  # UI design system
 │
+├── DOCS.md                         # Documentation index
 ├── thenvoi-mcp/                    # Band.ai MCP server (auto-cloned by run_mcp.sh)
 ├── .env.example                    # Environment variable template
 ├── verify_governance.py            # End-to-end verification script
@@ -214,13 +193,15 @@ The-AI-Charter/
 
 ### The Agent Panel
 
-| Agent               | Focus Area                                                           | LLM Provider    | Status         |
-| ------------------- | -------------------------------------------------------------------- | --------------- | -------------- |
-| 🔒 **Security**     | Attack surface, data handling, abuse risks, model output safety      | Featherless.ai  | **Implemented** |
-| ⚖️ **Ethics**       | Fairness, bias, potential for harm, values alignment                 | Featherless.ai  | Stub           |
-| 📜 **Legal**        | Regulatory exposure, IP concerns, jurisdictional requirements        | Featherless.ai  | Stub           |
-| 🚀 **Product**      | User impact, UX implications, business rationale                     | AI/ML API       | Stub           |
-| ✅ **Compliance**   | Policy checklists, standards coverage, audit evidence, approvals     | Featherless.ai  | **Implemented** |
+| Agent               | Focus Area                                                           | Status         |
+| ------------------- | -------------------------------------------------------------------- | -------------- |
+| 🔒 **Security**     | Attack surface, data handling, abuse risks, model output safety      | Implemented    |
+| ⚖️ **Ethics**       | Fairness, bias, potential for harm, values alignment                 | Implemented    |
+| 📜 **Legal**        | Regulatory exposure, IP concerns, jurisdictional requirements        | Implemented    |
+| 🚀 **Product**      | User impact, UX implications, business rationale                     | Implemented    |
+| ✅ **Compliance**   | Policy checklists, standards coverage, audit evidence, approvals     | Implemented    |
+
+All agents share the same LLM provider based on global key priority (OpenRouter → Featherless → AI/ML API). See [docs/architecture/AGENTS.md](./docs/architecture/AGENTS.md).
 
 ### The Workflow
 
@@ -312,7 +293,7 @@ flowchart TD
 
 ## Building / Modifying Agents
 
-The **Security Agent** is the reference implementation. The Compliance Agent now follows the same full pattern; Ethics, Legal, and Product remain lightweight stubs.
+The **Security Agent** is the reference implementation. All five agents follow the same pattern. See [docs/architecture/AGENTS.md](./docs/architecture/AGENTS.md) for the full lifecycle and adding new agents.
 
 ### Agent Anatomy
 
@@ -412,14 +393,17 @@ The backend uses **snake_case** Python models. The frontend uses **camelCase** T
 
 ## Frontend Pages
 
-| Route                    | Page                         | Description                                          |
-| ------------------------ | ---------------------------- | ---------------------------------------------------- |
-| `/`                      | Landing / Dashboard          | Animated landing for guests; audit ledger dashboard for authenticated users |
-| `/login`                 | Login                        | Email/password authentication                        |
-| `/signup`                | Signup                       | Registration with password complexity validation     |
-| `/submit`                | Submit Proposal              | 3-step form: Overview → Risk Profile → Compliance    |
-| `/review/[sessionId]`    | Live Review                  | Real-time polling of agent statuses and activity feed |
-| `/record/[sessionId]`    | Governance Record            | Full audit record: verdict, agent votes, findings, cross-examination log |
+| Route                         | Page                         | Description                                          |
+| ----------------------------- | ---------------------------- | ---------------------------------------------------- |
+| `/`                           | Landing                      | Marketing page for guests                            |
+| `/login`                      | Login                        | Email/password authentication                        |
+| `/signup`                     | Signup                       | Registration with password complexity validation     |
+| `/dashboard`                  | Operator Hub                 | Metrics, agent overview, audit ledger list           |
+| `/dashboard/submit`           | Submit Proposal              | 3-step form: Overview → Risk Profile → Compliance    |
+| `/review/[sessionId]`         | Live Review                  | Real-time polling of agent statuses and activity feed |
+| `/dashboard/record/[sessionId]` | Governance Record          | Full audit record: verdict, agent votes, findings    |
+| `/dashboard/ledgers`          | Audit Ledgers                | Full-page historical record list                     |
+| `/dashboard/settings`         | Settings                     | Operator profile and API connection info               |
 
 ---
 
@@ -429,13 +413,13 @@ The backend uses **snake_case** Python models. The frontend uses **camelCase** T
 cd backend
 
 # Run unit tests (fast, no LLM calls)
-pytest tests/test_vote_logic.py tests/test_parsers.py -v
+pipenv run pytest tests/test_vote_logic.py tests/test_parsers.py -v
 
 # Run all tests
-pytest -v
+pipenv run pytest -v
 
 # Run integration test (requires live LLM API keys, takes ~60s)
-pytest tests/test_integration.py -v -m integration
+pipenv run pytest tests/test_integration.py -v -m integration
 ```
 
 Tests cover:
@@ -464,11 +448,7 @@ See [`docs/HACKATHON.md`](./docs/HACKATHON.md) for full details, prizes, and jud
 
 ## Contributing
 
-1. Create a feature branch from `main`
-2. Follow the existing code patterns — study `backend/agents/security/` before writing new agents
-3. Import types from `web/src/types/charter.ts` — never inline types in components
-4. Run `pytest` before pushing
-5. Open a PR with a clear description of what changed and why
+See [docs/CONTRIBUTING.md](./docs/CONTRIBUTING.md) for branch workflow, conventions, and PR checklist.
 
 ---
 

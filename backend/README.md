@@ -1,49 +1,45 @@
 # AI Charter Backend
 
-FastAPI application that orchestrates the governance agents, handles Band.ai room lifecycles, and compiles governance records.
+FastAPI application that orchestrates governance agents, handles Band.ai room lifecycles, and compiles governance records.
+
+**Full documentation:** [docs/architecture/BACKEND.md](../docs/architecture/BACKEND.md)
 
 ## Requirements
 
 - Python 3.11+
-- [Pipenv](https://pipenv.pypa.io/) or virtualenv
+- [Pipenv](https://pipenv.pypa.io/) (recommended) or virtualenv
 
-## Getting Started
+## Quick start
 
-1. Navigate to the `backend` directory:
+```bash
+cd backend
+pipenv install
+pipenv run alembic upgrade head
+pipenv run uvicorn orchestrator.main:app --reload --port 8000
+```
 
-   ```bash
-   cd backend
-   ```
+Configure environment variables in the root `.env` file. See [docs/setup/ENVIRONMENT.md](../docs/setup/ENVIRONMENT.md).
 
-2. Create a virtual environment and install dependencies:
+## Folder structure
 
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate
-   pip install -r requirements.txt
-   ```
+| Path | Purpose |
+|------|---------|
+| `orchestrator/` | API endpoints and Band room orchestration |
+| `agents/` | Five governance agents + `BaseGovernanceAgent` |
+| `shared/` | Pydantic schemas, LLM client, DB models |
+| `record/` | Transcript → GovernanceRecord compiler |
+| `band.py` | Band.ai SDK wrapper |
+| `tests/` | pytest suite |
+| `alembic/` | Database migrations |
 
-3. Configure environment variables in `.env` (refer to `.env.example` in the root folder):
+## Tests
 
-   ```env
-   BAND_API_KEY=your_key
-   SECURITY_AGENT_API_KEY=your_security_agent_key
-   SECURITY_AGENT_ID=your_security_agent_participant_id
-   COMPLIANCE_AGENT_API_KEY=your_compliance_agent_key
-   COMPLIANCE_AGENT_ID=your_compliance_agent_participant_id
-   FEATHERLESS_API_KEY=your_key
-   AIML_API_KEY=your_key
-   ```
+```bash
+pipenv run pytest tests/test_vote_logic.py tests/test_parsers.py -v   # fast
+pipenv run pytest -v                                                   # all unit
+pipenv run pytest tests/test_integration.py -v -m integration          # needs LLM keys
+```
 
-4. Start the FastAPI development server:
-   ```bash
-   uvicorn orchestrator.main:app --reload --port 8000
-   ```
+## API docs
 
-## Folder Structure
-
-- `orchestrator/`: Endpoint routing and Band room orchestration.
-- `agents/`: Core governance agent classes (Security, Ethics, Legal, Product, Compliance) inheriting from `BaseGovernanceAgent`.
-- `shared/`: Pydantic validation schemas, LLM integration client, and shared prompt assets.
-- `record/`: Compiles governance reports from the Band.ai transcript history.
-- `tests/`: Unit and integration test suite.
+When running: http://localhost:8000/docs (manual) or http://localhost:8001/docs (Docker).
