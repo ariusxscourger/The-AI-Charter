@@ -201,7 +201,7 @@ The-AI-Charter/
 | 🚀 **Product**      | User impact, UX implications, business rationale                     | Implemented    |
 | ✅ **Compliance**   | Policy checklists, standards coverage, audit evidence, approvals     | Implemented    |
 
-All agents share the same LLM provider based on global key priority (OpenRouter → Featherless → AI/ML API). See [docs/architecture/AGENTS.md](./docs/architecture/AGENTS.md).
+All agents share the same LLM provider. A single configured provider key is inferred automatically; if multiple provider keys are present, set `LLM_PROVIDER` to `openrouter`, `featherless`, or `aiml`. See [docs/architecture/AGENTS.md](./docs/architecture/AGENTS.md).
 
 ### The Workflow
 

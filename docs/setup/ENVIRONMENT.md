@@ -41,18 +41,23 @@ At least one provider is recommended for meaningful agent evaluations.
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `OPENROUTER_API_KEY` | — | Highest priority if set |
+| `LLM_PROVIDER` | — | Required when more than one provider key is set. One of `openrouter`, `featherless`, `aiml` |
+| `OPENROUTER_API_KEY` | — | OpenRouter API key |
 | `OPENROUTER_MODEL` | `openrouter/auto` | Model ID |
-| `FEATHERLESS_API_KEY` | — | Second priority |
+| `FEATHERLESS_API_KEY` | — | Featherless API key |
 | `FEATHERLESS_MODEL` | `google/gemma-4-31B-it` | Model ID |
-| `AIML_API_KEY` | — | Third priority |
+| `AIML_API_KEY` | — | AI/ML API key |
 | `AIML_MODEL` | `google/gemma-4-31B-it` | Model ID |
 
 Provider selection in [`backend/orchestrator/main.py`](../../backend/orchestrator/main.py) (`get_llm_for()`):
 
 ```
-OpenRouter → Featherless → AI/ML API → dummy fallback
+single configured key → that provider
+multiple configured keys + LLM_PROVIDER → selected provider
+no configured keys → dummy fallback
 ```
+
+When multiple keys are configured and `LLM_PROVIDER` is missing, startup evaluations fail fast instead of silently choosing one provider.
 
 `FEATHERLESS_BASE_URL` and `AIML_BASE_URL` in `.env.example` are not read by `llm_client.py` (URLs are hardcoded there).
 

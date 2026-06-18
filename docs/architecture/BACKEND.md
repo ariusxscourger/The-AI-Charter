@@ -104,10 +104,12 @@ See [ADR 0006](../adr/0006-governance-record-storage-strategy.md).
 
 ## LLM routing
 
-`get_llm_for()` in `main.py` assigns the same provider to all agents based on global key priority:
+`get_llm_for()` in `main.py` assigns the same provider to all agents based on configured keys:
 
 ```
-OPENROUTER_API_KEY → FEATHERLESS_API_KEY → AIML_API_KEY → dummy
+one configured provider key → that provider
+multiple configured keys → LLM_PROVIDER
+no configured provider keys → dummy
 ```
 
 See [ADR 0005](../adr/0005-llm-provider-fallback-chain.md).
