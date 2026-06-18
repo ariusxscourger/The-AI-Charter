@@ -49,6 +49,7 @@ class BandMessage:
 
 
 _MOCK_MESSAGES: Dict[str, List[BandMessage]] = {}
+_ROOM_MESSAGE_CACHE: Dict[str, List[BandMessage]] = {}
 
 
 def _configured_env(name: str) -> Optional[str]:
@@ -139,6 +140,30 @@ class BandRooms:
 
         print(f"[WARN] Failed to add agent '{agent_id}' to room {room_id}: {error}", flush=True)
 
+    def _add_participant(self, room_id: str, participant):
+        if self._is_agent_key():
+            return self.client.agent_api_participants.add_agent_chat_participant(
+                chat_id=room_id,
+                participant=participant,
+            )
+
+        return self.client.human_api_participants.add_my_chat_participant(
+            chat_id=room_id,
+            participant=participant,
+        )
+
+    def _read_all_room_messages(self, room_id: str):
+        if self._is_agent_key():
+            return self.client.agent_api_context.get_agent_chat_context(
+                chat_id=room_id,
+                page_size=100,
+            )
+
+        return self.client.human_api_messages.list_my_chat_messages(
+            chat_id=room_id,
+            page_size=100,
+        )
+
     async def create(self, name: str):
         try:
             loop = asyncio.get_running_loop()
@@ -199,9 +224,6 @@ class BandRooms:
         if room_id in _MOCK_MESSAGES:
             return
 
-        if not self._is_agent_key():
-            return
-
         participant_id = self._participant_id_for_agent(agent_id)
 
         if not participant_id:
@@ -223,10 +245,7 @@ class BandRooms:
             loop = asyncio.get_running_loop()
             await loop.run_in_executor(
                 None,
-                lambda: self.client.agent_api_participants.add_agent_chat_participant(
-                    chat_id=room_id,
-                    participant=participant,
-                ),
+                lambda: self._add_participant(room_id, participant),
             )
 
             print(f"[INFO] Added agent '{agent_id}' to Band room {room_id}.", flush=True)
@@ -235,8 +254,9 @@ class BandRooms:
             self._log_participant_add_failure(agent_id, room_id, add_err)
 
     async def post_message(self, room_id: str, role: str, type: str, content: Any):
+        local_message = BandMessage(role, type, content)
         if room_id in _MOCK_MESSAGES:
-            _MOCK_MESSAGES[room_id].append(BandMessage(role, type, content))
+            _MOCK_MESSAGES[room_id].append(local_message)
             return
 
         serialized_payload = json.dumps(
@@ -276,6 +296,7 @@ class BandRooms:
                         message=msg_req,
                     ),
                 )
+                _ROOM_MESSAGE_CACHE.setdefault(room_id, []).append(local_message)
                 return
 
             msg_req = ChatMessageRequest(content=serialized_payload, mentions=[])
@@ -287,6 +308,7 @@ class BandRooms:
                     message=msg_req,
                 ),
             )
+            _ROOM_MESSAGE_CACHE.setdefault(room_id, []).append(local_message)
 
         except Exception as e:
             print(
@@ -302,18 +324,23 @@ class BandRooms:
                 messages = [m for m in messages if m.type == type_filter]
             return messages
 
+        if room_id in _ROOM_MESSAGE_CACHE:
+            messages = _ROOM_MESSAGE_CACHE[room_id]
+            if type_filter:
+                messages = [m for m in messages if m.type == type_filter]
+            return messages
+
         try:
             loop = asyncio.get_running_loop()
 
             response = await loop.run_in_executor(
                 None,
-                lambda: self.client.agent_api_context.get_agent_chat_context(
-                    chat_id=room_id,
-                    page_size=100,
-                ),
+                lambda: self._read_all_room_messages(room_id),
             )
 
             messages = [BandMessage.from_sdk(m) for m in response.data or []]
+            if messages:
+                _ROOM_MESSAGE_CACHE[room_id] = messages
 
             if type_filter:
                 messages = [m for m in messages if m.type == type_filter]
@@ -321,9 +348,9 @@ class BandRooms:
             return messages
 
         except Exception as e:
-            print(f"[WARN] Failed to get real Band messages: {e}. Reading from mock.", flush=True)
+            print(f"[WARN] Failed to get real Band messages: {e}. Reading from local cache.", flush=True)
 
-            messages = _MOCK_MESSAGES.get(room_id, [])
+            messages = _ROOM_MESSAGE_CACHE.get(room_id) or _MOCK_MESSAGES.get(room_id, [])
             if type_filter:
                 messages = [m for m in messages if m.type == type_filter]
             return messages

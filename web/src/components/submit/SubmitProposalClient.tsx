@@ -60,14 +60,17 @@ export function SubmitProposalClient() {
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
     // If user presses Enter on an input in step 1 or 2, advance to next step instead of submitting
     if (step < 3) {
       handleNext()
-      return
     }
+  }
+
+  const handleSubmit = async () => {
+    if (submitting || jurisdictions.length === 0) return
 
     setError(null)
     setSubmitting(true)
@@ -310,7 +313,7 @@ export function SubmitProposalClient() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleFormSubmit}>
           <Card className="border border-[#C7C7C7]/80 shadow-sm bg-white">
             {/* STEP 1: OVERVIEW */}
             {step === 1 && (
@@ -554,7 +557,8 @@ export function SubmitProposalClient() {
                 </button>
               ) : (
                 <button
-                  type="submit"
+                  type="button"
+                  onClick={handleSubmit}
                   disabled={submitting || jurisdictions.length === 0}
                   className="ml-auto flex h-10 cursor-pointer items-center justify-center gap-2 rounded-[20px] bg-[#76E1A7] px-6 font-bold text-[#1F2937] text-xs uppercase transition-all hover:bg-[#8BF5BD] hover:shadow-[0_0_12px_rgba(118,225,167,0.4)] disabled:pointer-events-none disabled:opacity-50"
                 >

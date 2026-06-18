@@ -1,22 +1,24 @@
-# ADR-0005: LLM Provider Fallback Chain
+# ADR-0005: LLM Provider Selection
 
 **Status:** Accepted
 **Date:** 2026-06-12
 
 ## Context
 
-Hackathon participants have access to multiple LLM providers (OpenRouter, Featherless, AI/ML API) with different promo credits. The system must work during local development even when no keys are configured, and should prefer the best available provider without per-agent configuration complexity.
+Hackathon participants have access to multiple LLM providers (OpenRouter, Featherless, AI/ML API) with different promo credits. The system must work during local development even when no keys are configured, and should use the provider implied by the configured key without per-agent configuration complexity.
 
 ## Decision
 
-A **global provider priority chain** in `get_llm_for()` ([`orchestrator/main.py`](../../backend/orchestrator/main.py)):
+A **global provider selection** in `get_llm_for()` ([`orchestrator/main.py`](../../backend/orchestrator/main.py)):
 
 ```
-1. OPENROUTER_API_KEY  → OpenRouter client
-2. FEATHERLESS_API_KEY → Featherless client
-3. AIML_API_KEY        → AI/ML API client
-4. (none)              → dummy client (api_key="dummy")
+1. Exactly one configured provider key → that provider
+2. Multiple configured provider keys + LLM_PROVIDER → selected provider
+3. Multiple configured provider keys without LLM_PROVIDER → configuration error
+4. No configured provider keys → dummy client (api_key="dummy")
 ```
+
+`LLM_PROVIDER` accepts `openrouter`, `featherless`, or `aiml`.
 
 All five agents share the same provider instance for a given request. Per-agent LLM routing (e.g. Product → AI/ML API only) is **not** implemented.
 
@@ -27,12 +29,13 @@ Agent evaluation failures are caught gracefully: empty findings, fallback `flag`
 **Positive:**
 
 - Works out of the box for UI development without LLM keys
-- Simple configuration: set any one key
+- Simple configuration: set any one key, or set `LLM_PROVIDER` when multiple keys exist
 - Hackathon-friendly: participants use whichever provider they have credits for
 
 **Negative:**
 
 - Cannot mix providers per agent without code changes
+- Multiple configured keys require one explicit selector
 - Dummy fallback produces empty evaluations (agents still run but findings are vacuous)
 - `FEATHERLESS_BASE_URL` / `AIML_BASE_URL` env vars are ignored (URLs hardcoded in `llm_client.py`)
 

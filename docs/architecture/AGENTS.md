@@ -108,7 +108,7 @@ Individual agent votes are also deterministic Python in each agent's `_determine
 - **LLM is used for:** domain evaluations, cross-examination reasoning, vote *reasoning text*
 - **LLM is NOT used for:** final vote decision, final verdict
 
-All agents currently share the same LLM provider (global key priority). Per-agent routing is not implemented.
+All agents currently share the same LLM provider. A single configured provider key is inferred automatically; if multiple provider keys are configured, `LLM_PROVIDER` selects which one to use. Per-agent routing is not implemented.
 
 ---
 

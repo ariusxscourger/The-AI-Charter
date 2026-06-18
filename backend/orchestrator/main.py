@@ -69,6 +69,40 @@ async def custom_swagger_ui_html():
 
 agents = [SecurityAgent, EthicsAgent, LegalAgent, ProductAgent, ComplianceAgent]
 agent_roles = [AgentClass.AGENT_ID for AgentClass in agents]
+AGENT_INFO = [
+    {"id": "security", "name": "Security Agent", "emoji": "🔒"},
+    {"id": "ethics", "name": "Ethics Agent", "emoji": "⚖️"},
+    {"id": "legal", "name": "Legal Agent", "emoji": "📜"},
+    {"id": "product", "name": "Product Agent", "emoji": "🚀"},
+    {"id": "compliance", "name": "Compliance Agent", "emoji": "✅"},
+]
+AGENT_ALIASES = {
+    "security": "security",
+    "security_agent": "security",
+    "securityagent": "security",
+    "security agent": "security",
+    "ethics": "ethics",
+    "ethics_agent": "ethics",
+    "ethicsagent": "ethics",
+    "ethics agent": "ethics",
+    "legal": "legal",
+    "legal_agent": "legal",
+    "legalagent": "legal",
+    "legal agent": "legal",
+    "product": "product",
+    "product_agent": "product",
+    "productagent": "product",
+    "product agent": "product",
+    "compliance": "compliance",
+    "compliance_agent": "compliance",
+    "complianceagent": "compliance",
+    "compliance agent": "compliance",
+}
+LLM_PROVIDERS = {
+    "openrouter": ("OPENROUTER_API_KEY", "OPENROUTER_MODEL", "openrouter/auto"),
+    "featherless": ("FEATHERLESS_API_KEY", "FEATHERLESS_MODEL", "google/gemma-4-31B-it"),
+    "aiml": ("AIML_API_KEY", "AIML_MODEL", "google/gemma-4-31B-it"),
+}
 
 # Initialise Band client and all 5 agents at startup.
 band_client = BandClient()
@@ -76,24 +110,55 @@ band_client = BandClient()
 def get_band_client_for(AgentClass) -> BandClient:
     return band_client.for_role(AgentClass.AGENT_ID)
 
+def _normalize_llm_provider(provider: str) -> str:
+    normalized = provider.strip().lower().replace("-", "_").replace("/", "_")
+    aliases = {
+        "ai_ml": "aiml",
+        "aimlapi": "aiml",
+        "ai_ml_api": "aiml",
+        "open_router": "openrouter",
+    }
+    return aliases.get(normalized, normalized)
+
+def _select_llm_provider(configured_providers: dict[str, tuple[str, str]]) -> str | None:
+    requested_provider = os.environ.get("LLM_PROVIDER")
+    if requested_provider:
+        provider = _normalize_llm_provider(requested_provider)
+        if provider not in LLM_PROVIDERS:
+            valid = ", ".join(LLM_PROVIDERS)
+            raise ValueError(f"Invalid LLM_PROVIDER '{requested_provider}'. Expected one of: {valid}.")
+        if provider not in configured_providers:
+            key_env, _, _ = LLM_PROVIDERS[provider]
+            raise ValueError(f"LLM_PROVIDER is set to '{provider}', but {key_env} is not configured.")
+        return provider
+
+    if len(configured_providers) == 1:
+        return next(iter(configured_providers))
+    if len(configured_providers) > 1:
+        configured = ", ".join(configured_providers)
+        raise ValueError(
+            "Multiple LLM provider keys are configured "
+            f"({configured}). Set LLM_PROVIDER to one of: {configured}."
+        )
+    return None
+
 def get_llm_for(AgentClass):
-    openrouter_key = os.environ.get("OPENROUTER_API_KEY")
-    featherless_key = os.environ.get("FEATHERLESS_API_KEY")
-    aiml_key = os.environ.get("AIML_API_KEY")
-    
-    openrouter_model = os.environ.get("OPENROUTER_MODEL") or "openrouter/auto"
-    featherless_model = os.environ.get("FEATHERLESS_MODEL") or "google/gemma-4-31B-it"
-    aiml_model = os.environ.get("AIML_MODEL") or "google/gemma-4-31B-it"
-    
-    if openrouter_key:
-        return LLMClient(provider="openrouter", api_key=openrouter_key, model=openrouter_model)
-    elif featherless_key:
-        return LLMClient(provider="featherless", api_key=featherless_key, model=featherless_model)
-    elif aiml_key:
-        return LLMClient(provider="aiml", api_key=aiml_key, model=aiml_model)
-    else:
+    configured_providers = {}
+    for provider, (key_env, model_env, default_model) in LLM_PROVIDERS.items():
+        api_key = os.environ.get(key_env)
+        if api_key:
+            configured_providers[provider] = (
+                api_key,
+                os.environ.get(model_env) or default_model,
+            )
+
+    provider = _select_llm_provider(configured_providers)
+    if provider is None:
         # Fallback dummy LLM client so it doesn't crash if no keys are provided
         return LLMClient(provider="featherless", api_key="dummy", model="dummy")
+
+    api_key, model = configured_providers[provider]
+    return LLMClient(provider=provider, api_key=api_key, model=model)
 
 @app.post(
     "/submit",
@@ -202,24 +267,41 @@ def extract_feature_name(messages) -> str:
         return sub_msg.content.get("feature_name", "Unknown Feature")
     return "Unknown Feature"
 
+def _message_content(message) -> dict:
+    return message.content if isinstance(message.content, dict) else {}
+
+def _canonical_agent_id(value: str | None) -> str | None:
+    if not value:
+        return None
+
+    normalized = value.strip().lower().replace("-", "_")
+    return AGENT_ALIASES.get(normalized)
+
+def _agent_id_for_message(message) -> str | None:
+    content = _message_content(message)
+    return (
+        _canonical_agent_id(message.role)
+        or _canonical_agent_id(content.get("agent_id"))
+        or _canonical_agent_id(content.get("agent"))
+    )
+
 def build_agent_status(messages) -> list:
     status_by_agent = {}
     for m in messages:
+        agent_id = _agent_id_for_message(m)
+        if not agent_id:
+            continue
+
+        content = _message_content(m)
         if m.type == "status_update":
-            status_by_agent[m.role] = {"status": m.content.get("status"), "vote": None}
+            if status_by_agent.get(agent_id, {}).get("status") == "voted":
+                continue
+            status_by_agent[agent_id] = {"status": content.get("status"), "vote": None}
         elif m.type == "vote":
-            status_by_agent[m.role] = {"status": "voted", "vote": m.content.get("vote")}
-            
-    agent_info = [
-        {"id": "security", "name": "Security Agent", "emoji": "🔒"},
-        {"id": "ethics", "name": "Ethics Agent", "emoji": "⚖️"},
-        {"id": "legal", "name": "Legal Agent", "emoji": "📜"},
-        {"id": "product", "name": "Product Agent", "emoji": "🚀"},
-        {"id": "compliance", "name": "Compliance Agent", "emoji": "✅"},
-    ]
+            status_by_agent[agent_id] = {"status": "voted", "vote": content.get("vote")}
     
     result = []
-    for info in agent_info:
+    for info in AGENT_INFO:
         state = status_by_agent.get(info["id"], {"status": "pending", "vote": None})
         result.append({
             "id": info["id"],
@@ -233,30 +315,33 @@ def build_agent_status(messages) -> list:
 def build_activity_feed(messages) -> list:
     feed = []
     for m in messages:
+        content = _message_content(m)
+        agent_id = _agent_id_for_message(m) or m.role
+
         if m.type == "status_update":
             feed.append({
                 "timestamp": m.timestamp,
-                "agentId": m.role,
-                "message": f"started evaluation ({m.content.get('status')})"
+                "agentId": agent_id,
+                "message": f"started evaluation ({content.get('status')})"
             })
         elif m.type == "findings":
-            findings = m.content.get("findings", [])
+            findings = content.get("findings", [])
             feed.append({
                 "timestamp": m.timestamp,
-                "agentId": m.role,
+                "agentId": agent_id,
                 "message": f"identified {len(findings)} findings"
             })
         elif m.type == "challenge":
             feed.append({
                 "timestamp": m.timestamp,
-                "agentId": m.role,
-                "message": f"challenged {m.content.get('to_agent')} on '{m.content.get('finding_title')}'"
+                "agentId": agent_id,
+                "message": f"challenged {content.get('to_agent')} on '{content.get('finding_title')}'"
             })
         elif m.type == "vote":
             feed.append({
                 "timestamp": m.timestamp,
-                "agentId": m.role,
-                "message": f"voted {m.content.get('vote').upper()} with {m.content.get('confidence')} confidence"
+                "agentId": agent_id,
+                "message": f"voted {content.get('vote', '').upper()} with {content.get('confidence')} confidence"
             })
     return feed
 

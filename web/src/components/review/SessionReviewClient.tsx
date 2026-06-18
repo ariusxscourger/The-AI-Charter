@@ -8,7 +8,7 @@ import type { SessionStatus } from "@/types/charter"
 import { AnimatePresence, motion } from "framer-motion"
 import { CheckCircle2, ChevronLeft, Database, Loader2, MessageSquare, Send, Sparkles, Terminal } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 export function SessionReviewClient() {
   const params = useParams()
@@ -20,6 +20,7 @@ export function SessionReviewClient() {
   const [pollingDelay, setPollingDelay] = useState<number | null>(3000)
   const [compiling, setCompiling] = useState(false)
   const [pipelineState, setPipelineState] = useState(0)
+  const hasLoadedStatus = useRef(false)
 
   useEffect(() => {
     // Pipeline overall state (flashes lines at the top/bottom)
@@ -46,7 +47,9 @@ export function SessionReviewClient() {
   const fetchStatus = useCallback(async () => {
     try {
       const data = await getSessionStatus(sessionId)
+      hasLoadedStatus.current = true
       setStatus(data)
+      setError(null)
 
       if (data.status === "complete") {
         setPollingDelay(null)
@@ -54,6 +57,10 @@ export function SessionReviewClient() {
       }
     } catch (err) {
       const error = err as Error
+      if (hasLoadedStatus.current && error.message === "Session not found") {
+        console.warn(error)
+        return
+      }
       console.error(error)
       setError(error.message || "Failed to poll session status")
     }
