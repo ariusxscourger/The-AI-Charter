@@ -51,13 +51,13 @@ const TEAM_MEMBERS = [
   {
     name: "Meekal Jamil",
     handle: "meekal_jamil",
-    role: "Core Operator",
+    role: "Full Stack Developer",
     image:
       "https://storage.googleapis.com/lablab-static-eu/images/users/true/cmq16bche00pxs6013jv2q6gh_picture_a3tvif6glll019xywjgxcyt1.jpg",
     links: {
       github: "https://github.com/Meekal-Jamil",
-      linkedin: "",
-      portfolio: "",
+      linkedin: "https://www.linkedin.com/in/meekal-jamil",
+      portfolio: "https://github.com/Meekal-Jamil",
     },
   },
   {
