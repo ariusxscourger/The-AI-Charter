@@ -5,13 +5,13 @@ const TEAM_MEMBERS = [
   {
     name: "Muhammad Saqib",
     handle: "Arius_Scourger",
-    role: "Team Lead & Core Operator",
+    role: "Full Stack AI Engineer",
     image:
       "https://storage.googleapis.com/lablab-static-eu/images/users/true/cmpucg4fw01jcs6012q1t3gvu_picture_qnq3keyh7tvw02ef2b1uxoiq.jpg",
     links: {
       github: "https://github.com/ariusxscourger",
-      linkedin: "",
-      portfolio: "",
+      linkedin: "https://www.linkedin.com/in/muhammad-saqib-dev/",
+      portfolio: "https://muhammadsaqibportfolio.vercel.app/",
     },
   },
   {
