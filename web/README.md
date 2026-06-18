@@ -1,36 +1,55 @@
-# Next.js 16 Starter
+# The AI Charter — Frontend
 
-Modern starter with Next.js 16, Tailwind v4, shadcn/ui, and Biome.
+Next.js 16 web application for proposal submission, live agent review, and governance record viewing.
 
-## Create New Project
+**Full documentation:** [docs/architecture/FRONTEND.md](../docs/architecture/FRONTEND.md)
+
+## Stack
+
+Next.js 16 · React 19 · Tailwind CSS 4 · TypeScript · Bun
+
+## Quick start
 
 ```bash
-bun create smblee/nextjs-biome-shadcn-tailwind4-starter my-app
-cd my-app
+cd web
+bun install
 bun dev
 ```
 
-## Quick Start
+Set `NEXT_PUBLIC_API_BASE_URL` in the root `.env`:
 
-```bash
-bun i
-bun dev
-```
+| Mode | Value |
+|------|-------|
+| Manual dev | `http://localhost:8000` |
+| Docker | `http://localhost:8001` |
+
+Open http://localhost:3000
+
+> **Docker note:** The frontend container uses `pnpm` internally (`docker/Dockerfile.frontend`). Use **Bun** for local development.
 
 ## Commands
 
-- `bun dev` - Start development
-- `bun build` - Build for production
-- `bun lint` - Check code
-- `bun format` - Format code
+| Command | Description |
+|---------|-------------|
+| `bun dev` | Start development server |
+| `bun run build` | Production build |
+| `bun lint` | Run ESLint |
+| `bun run format` | Run Prettier |
 
-## What's Included
+## Key conventions
 
-- Next.js 16
-- Tailwind CSS v4
-- shadcn/ui components
-- Biome (linting + formatting)
-- TS env (environment variables)
-- Bun package manager
-- TypeScript
-- Git hooks with Lefthook
+- Types: import from `src/types/charter.ts` — never inline API shapes
+- API calls: all go through `src/lib/api.ts` (snake_case ↔ camelCase translation)
+- UI design: see [docs/design/UI_SYSTEM.md](../docs/design/UI_SYSTEM.md)
+
+## Routes
+
+| Route | Purpose |
+|-------|---------|
+| `/` | Landing page |
+| `/dashboard` | Operator hub |
+| `/dashboard/submit` | Proposal form |
+| `/review/[sessionId]` | Live review |
+| `/dashboard/record/[sessionId]` | Governance record |
+
+Full route table: [docs/architecture/FRONTEND.md](../docs/architecture/FRONTEND.md#routes).

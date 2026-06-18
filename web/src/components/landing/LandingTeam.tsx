@@ -1,7 +1,6 @@
 import { Github, Globe, Linkedin } from "lucide-react"
 import Link from "next/link"
 
-//TODO: ADD YOUR INFO HERE
 const TEAM_MEMBERS = [
   {
     name: "Muhammad Saqib",
@@ -69,8 +68,8 @@ const TEAM_MEMBERS = [
       "https://storage.googleapis.com/lablab-static-eu/images/users/true/cmpv2m43d000ks601kmwwztxx_picture_cszfd3024xa09tvd86shpfkf.jpg",
     links: {
       github: "https://github.com/itxsaaad",
-      linkedin: "",
-      portfolio: "",
+      linkedin: "https://www.linkedin.com/in/itxsaaad",
+      portfolio: "https://codesbysaad.dev",
     },
   },
 ]
