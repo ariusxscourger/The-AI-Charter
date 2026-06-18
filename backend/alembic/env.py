@@ -24,7 +24,15 @@ from dotenv import load_dotenv
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # Load env variables from root .env or backend .env
-load_dotenv(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.env")))
+_backend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+_root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+for _env_path in [
+    os.path.join(_backend_dir, ".env"),
+    os.path.join(_root_dir, ".env"),
+]:
+    if os.path.exists(_env_path):
+        load_dotenv(_env_path)
+        break
 
 from shared.models import SQLModel  # This registers the models on SQLModel.metadata
 
@@ -34,6 +42,24 @@ target_metadata = SQLModel.metadata
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
+
+
+def _normalize_db_url(url: str) -> str:
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+    elif url.startswith("postgresql://"):
+        url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+    parsed = urlparse(url)
+    params = parse_qs(parsed.query)
+    if "sslmode" in params:
+        sslmode = params.pop("sslmode")[0]
+        if sslmode in ("require", "prefer", "allow"):
+            params["ssl"] = ["require"]
+    if params:
+        new_query = urlencode(params, doseq=True)
+        url = urlunparse(parsed._replace(query=new_query))
+    return url
 
 
 def run_migrations_offline() -> None:
@@ -48,11 +74,11 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    db_url = os.environ.get("DATABASE_URL", "postgresql://postgres:postgres_password@localhost:5432/charter_db")
-    if db_url.startswith("postgres://"):
-        db_url = db_url.replace("postgres://", "postgresql+asyncpg://", 1)
-    elif db_url.startswith("postgresql://"):
-        db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    db_url = os.environ.get(
+        "DATABASE_URL",
+        "postgresql://postgres:postgres_password@localhost:5432/charter_db",
+    )
+    db_url = _normalize_db_url(db_url)
     url = db_url
     context.configure(
         url=url,
@@ -79,11 +105,11 @@ async def run_async_migrations() -> None:
     """
 
     section = config.get_section(config.config_ini_section, {})
-    db_url = os.environ.get("DATABASE_URL", "postgresql://postgres:postgres_password@localhost:5432/charter_db")
-    if db_url.startswith("postgres://"):
-        db_url = db_url.replace("postgres://", "postgresql+asyncpg://", 1)
-    elif db_url.startswith("postgresql://"):
-        db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    db_url = os.environ.get(
+        "DATABASE_URL",
+        "postgresql://postgres:postgres_password@localhost:5432/charter_db",
+    )
+    db_url = _normalize_db_url(db_url)
     section["sqlalchemy.url"] = db_url
 
     connectable = async_engine_from_config(
