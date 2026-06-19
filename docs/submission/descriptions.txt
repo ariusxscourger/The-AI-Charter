@@ -1,0 +1,27 @@
+Short Description
+
+  The AI Charter is a multi-agent AI governance platform that helps teams review proposed AI features before deployment.
+  Five specialized agents evaluate ethics, security, legal risk, compliance, and product impact, then debate, vote, and
+  generate a transparent audit record for responsible AI release decisions.
+
+  ---
+  Long Description
+
+  The AI Charter is a responsible AI governance platform designed for high-stakes and regulated workflows. Before an
+  AI-powered feature is released, teams can submit a detailed proposal through the platform, including the feature
+  description, intended use, affected systems, data sources, PII involvement, jurisdictions, and compliance requirements.
+
+  Once submitted, the system creates a live governance session powered by a multi-agent review workflow. Five specialized
+  AI agents — Ethics, Security, Legal, Product, and Compliance — independently evaluate the proposal, generate findings,
+  challenge one another through adversarial cross-examination, and cast final votes. The entire process is tracked in real
+  time through a shared Band.ai context room and compiled into a structured governance record.
+
+  The final output is a transparent audit artifact that includes the consensus verdict, mandatory release conditions, agent
+  reasoning, findings, severity levels, recommendations, and cross-examination logs. This gives teams a defensible record
+  of how and why an AI feature was approved, rejected, or flagged for human review.
+
+  Built with Next.js, React, TypeScript, Tailwind CSS, Framer Motion, FastAPI, Band.ai, and PostgreSQL, The AI Charter
+  combines a polished operator-style interface with a structured backend workflow for responsible AI deployment.
+
+  In short, The AI Charter helps organizations move faster with AI while keeping governance, transparency, and
+  accountability at the center of the release process.

@@ -1,0 +1,272 @@
+  ---
+  The AI Charter — App Presentation Script
+
+  Opening / Introduction
+
+  “Hello everyone. Today I’m presenting The AI Charter, a multi-agent AI governance platform designed to help teams review
+  AI features before they are released.
+
+  The core problem we’re solving is that AI features often move quickly from idea to production, but the governance process
+  around them can be unclear, manual, and hard to audit. The AI Charter creates a structured, transparent workflow where
+  five specialized AI agents evaluate a proposed feature, challenge each other’s conclusions, cast votes, and generate a
+  durable governance record.
+
+  This is built for high-stakes and regulated workflows — areas like healthcare, finance, HR, education, legal,
+  cybersecurity, and compliance-heavy product development.
+
+  The application is built with Next.js 16, React, TypeScript, Tailwind CSS, Framer Motion, FastAPI, Band.ai, and 
+  PostgreSQL. The frontend uses a retro-futuristic technical design language: cream canvas, dark command panels, grid
+  overlays, monospace labels, and robot-green action states.”
+
+  ---
+  Page 1: Landing Page /
+
+  “Let’s start with the landing page.
+
+  This page introduces the product as a collaborative multi-agent governance system. The hero section immediately
+  communicates the value proposition: before an AI feature ships, it is reviewed by specialized agents across ethics,
+  security, compliance, legal, and product risk.
+
+  The animated terminal on the right simulates a live governance transcript. It shows the system initializing a feature,
+  analyzing fairness, detecting a security risk, checking legal exposure, verifying compliance, and finally reaching a
+  conditional approval verdict.
+
+  Below the hero, we show the full AI Charter pipeline. This is an important part of the product story because it visually
+  explains the architecture:
+
+  1. The user submits a proposal.
+  2. The orchestrator creates a shared Band.ai context room.
+  3. Five agents evaluate the proposal in parallel.
+  4. Agents challenge each other through adversarial cross-examination.
+  5. Votes are cast.
+  6. A governance record is generated and stored.
+
+  The five agents are:
+
+  - Ethics Agent, focused on bias and fair alignment.
+  - Security Agent, focused on threat modeling, sandboxing, and data handling.
+  - Legal Agent, focused on IP, liability, and jurisdiction.
+  - Product Agent, focused on user impact, UX, and operational constraints.
+  - Compliance Agent, focused on GDPR, SOC2, policy requirements, and audit evidence.
+
+  The landing page also includes the team section and partner section, showing that this is part of the Band of Agents
+  ecosystem, with integrations involving Band.ai, Featherless.ai, and AI/ML API.
+
+  The call-to-action invites the user to either connect as an existing operator or initialize a new node by signing up.”
+
+  ---
+  Page 2: Signup Page /signup
+
+  “Next, if a new user wants access, they can create a governance node account.
+
+  The signup page is intentionally framed as ‘Register Governance Node’, which keeps the product language consistent with
+  the operator and system-monitoring theme.
+
+  The form collects an email and password. We also added real-time password complexity validation: the password must
+  include at least eight characters, one uppercase letter, one number, and one special character.
+
+  This makes the onboarding feel more secure and enterprise-ready. Once registration succeeds, the user receives a JWT
+  token and is redirected into the app.”
+
+  ---
+  Page 3: Login Page /login
+
+  “The login page is the operator authentication surface.
+
+  It uses the same visual language as signup: a focused terminal-style card, clear labels, password visibility toggle,
+  loading state, and error messaging.
+
+  From a product perspective, this is where an existing operator reconnects to the governance grid. After authentication,
+  the token is stored locally and used by the API layer to authorize requests.”
+
+  ---
+  Page 4: Dashboard Hub /dashboard
+
+  “Once authenticated, the user lands in the Operator Hub.
+
+  This is the central command center of the application.
+
+  At the top, we show the active multi-agent grid status and a short product summary: the platform verifies ethics,
+  security, compliance, legal exposure, and product parameters using five specialized agents connected through a shared
+
+  ---
+  Page 3: Login Page /login
+
+  “The login page is the operator authentication surface.
+
+  It uses the same visual language as signup: a focused terminal-style card, clear labels, password visibility toggle,
+  loading state, and error messaging.
+
+  From a product perspective, this is where an existing operator reconnects to the governance grid. After authentication,
+  the token is stored locally and used by the API layer to authorize requests.”
+
+  ---
+  Page 4: Dashboard Hub /dashboard
+
+  “Once authenticated, the user lands in the Operator Hub.
+
+  This is the central command center of the application.
+
+  At the top, we show the active multi-agent grid status and a short product summary: the platform verifies ethics,
+  security, compliance, legal exposure, and product parameters using five specialized agents connected through a shared
+  Band.ai room.
+
+  The primary action is ‘Propose New Feature’, which starts a new governance session.
+
+  Below that, the metrics panel gives a quick operational overview:
+
+  - Number of proposals audited.
+  - Number of approved verdicts.
+  - Number of active agents connected.
+
+  Then we have the animated pipeline visualization again, but now it represents the live architecture of the application.
+  It shows the flow from user submission, to the Band.ai shared context room, to the agent grid, and finally to the
+  governance record output.
+
+  The governance process section explains the lifecycle in four steps:
+
+  1. Submission — submit feature specs, data sources, and risk profile.
+  2. Evaluation — five agents independently generate findings.
+  3. Adversarial Review — agents challenge peer conclusions in the Band room.
+  4. Immutable Record — the final record is compiled and saved to PostgreSQL.
+
+  On the right side, we have the audit ledger list. This lets users search previous records by feature name or reference
+  ID, filter by verdict, and open any historical governance record.”
+
+  ---
+  Page 5: Submit Proposal Page /dashboard/submit
+
+  “Now let’s move into the submission flow.
+
+  This is where an operator proposes a new AI feature for governance review.
+
+  The form is split into three steps: Overview, Risk Profile, and Compliance.
+
+  In the first step, the user enters the feature name, feature type, description, and intended use. The feature type can be
+  a new feature, model change, prompt change, integration, or other.
+
+  The second step captures the risk profile. The user lists affected systems, data sources, whether PII is involved,
+  third-party dependencies, and any existing risk assessment.
+
+  The third step handles jurisdiction and compliance. The user can select target regions such as the US, EU, Canada, UK,
+  Japan, and Australia, and compliance frameworks such as GDPR, CCPA, SOC2, HIPAA, ISO27001, and the EU AI Act.
+
+  There is also a useful demo feature: ‘Prefill Example’. This randomly loads realistic governance scenarios, such as a
+  smart customer support router, clinical trial patient matcher, automated resume screener, developer copilot extension,
+  banking voice assistant, predictive maintenance system, algorithmic trading optimizer, student essay grader, supply chain
+  predictor, or legal document summarizer.
+
+  This makes the demo easier to present because the reviewer can quickly see how the platform handles different industries
+  and risk levels.
+
+  When the form is submitted, the frontend sends the proposal to the backend. The backend creates a governance session,
+  opens a Band.ai room, and launches the five agents asynchronously.”
+
+  ---
+  Page 6: Live Review Page /review/[sessionId]
+
+  “After submission, the user is redirected to the live review page for that session.
+
+  This is one of the most important pages in the app because it shows the governance process happening in real time.
+
+  At the top, we show the active review room and the session ID. The visualization shows the proposal moving through the
+  same architecture:
+
+  - Proposal submitted.
+  - Band.ai shared context room opened.
+  - Agent grid activated.
+  - Record generator preparing the final audit trail.
+
+  Each agent card updates as the session progresses. Agents can be reviewing, voted, or awaiting activity. Once an agent
+  has voted, the card shows the vote state and completion status.
+
+  Below the pipeline, we have the Band.ai Live Transcript. This is the event feed from the shared room. It shows
+  timestamped messages from agents as they evaluate the proposal, post findings, challenge one another, and eventually
+  vote.
+
+  The frontend polls the session status endpoint every few seconds. Once the backend reports that the session is complete,
+  the app fetches the compiled governance record, saves it to the audit cache, and redirects the user to the final record
+  page.
+
+  This page is designed to make the review process feel transparent, observable, and traceable.”
+
+  ---
+  Page 7: Governance Record Page /dashboard/record/[sessionId]
+
+  “Once the review is complete, the user sees the final governance record.
+
+  This page is the audit artifact.
+
+  At the top, we show the feature name, the governance session reference, and the consensus verdict. The verdict can be
+  approved, rejected, conditional approval, or human review required.
+
+  If the result is conditional approval, the page displays mandatory release conditions that must be satisfied before
+  deployment.
+
+  Next, the record shows the original proposal specs and risk profile. This includes feature type, PII involvement,
+  affected systems, target jurisdictions, description, intended use, and data sources.
+
+  Then we show the agent ballots and reasoning. Each agent record includes:
+
+  - Agent name.
+  - Vote.
+  - Confidence level.
+  - Reasoning statement.
+  - Findings.
+  - Recommendations.
+
+  The findings are displayed with severity badges such as critical, high, medium, low, or informational.
+
+  If cross-examination happened during the session, the record also includes the adversarial cross-examination log. This
+  shows which agent challenged which other agent, what the challenge was, and what the counter-position was.
+
+  At the bottom, the record includes a session timestamp and a distributed governance node stamp.
+
+  This page is important because it turns a complex multi-agent review into a human-readable, defensible audit record.”
+---
+
+  Technical Architecture Section
+
+  “Under the hood, the app follows a clean separation of concerns.
+
+  The backend uses Python and FastAPI. It exposes endpoints for authentication, proposal submission, session status,
+  governance record retrieval, and historical record listing.
+
+  The frontend uses a centralized API client in src/lib/api.ts. This client is responsible for translating between the
+  backend’s Python-style snake_case fields and the frontend’s TypeScript camelCase types. That keeps the application
+  consistent and prevents API shapes from being duplicated across components.
+
+  The shared frontend contract lives in src/types/charter.ts, which defines submissions, session status, findings, agent
+  records, and governance records.
+
+  The live review page uses a polling hook to repeatedly check session status. Once the session is complete, it retrieves
+  the compiled governance record and persists it into the audit cache.
+
+  The agents themselves operate through a shared Band.ai room. The orchestrator injects the submission context, each agent
+  posts findings and votes, and the record generator compiles the transcript into the final governance record.”
+
+  ---
+  Closing / Final Pitch
+
+  “To summarize, The AI Charter turns AI governance from a manual checklist into an observable, multi-agent workflow.
+
+  It helps teams answer critical questions before deployment:
+
+  - Is this feature fair?
+  - Is it secure?
+  - Does it expose legal or compliance risk?
+  - Does it create product or operational concerns?
+  - Can we defend the decision later?
+
+  The result is not just a yes-or-no answer. The platform produces a structured governance record with agent reasoning,
+  findings, recommendations, cross-examination logs, and a final verdict.
+
+  That makes The AI Charter useful for teams that need responsible AI deployment without slowing down innovation.
+
+  Thank you.”
+
+  ---
+  Short Closing Line
+  
+  “If I had to summarize The AI Charter in one sentence: it is a multi-agent governance layer that helps organizations
+  deploy AI features with transparency, accountability, and an auditable decision trail.”
