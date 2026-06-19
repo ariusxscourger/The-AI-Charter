@@ -30,10 +30,10 @@ const TEAM_MEMBERS = [
     name: "Muhammad Talha",
     handle: "MTalhaR",
     role: "AI Engineer",
-    image: "https://storage.googleapis.com/lablab-static-eu/images/midjourney/profile/profile%20(28).png",
+    image: "/talha-profile.jpeg",
     links: {
       github: "https://github.com/muhammad-talha-ad",
-      linkedin: "",
+      linkedin: "https://www.linkedin.com/in/talha-rizwan-1a4682180/",
       portfolio: "",
     },
   },
