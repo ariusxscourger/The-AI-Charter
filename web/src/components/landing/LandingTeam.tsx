@@ -29,7 +29,7 @@ const TEAM_MEMBERS = [
   {
     name: "Muhammad Talha",
     handle: "MTalhaR",
-    role: "AI Engineer",
+    role: "Senior Full Stack AI Engineer",
     image: "/talha-profile.jpeg",
     links: {
       github: "https://github.com/muhammad-talha-ad",
