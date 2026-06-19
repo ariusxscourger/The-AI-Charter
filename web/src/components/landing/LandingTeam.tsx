@@ -41,11 +41,12 @@ const TEAM_MEMBERS = [
     name: "Muhammad Athar",
     handle: "atharrizwan",
     role: "Core Operator",
-    image: "https://avatars.githubusercontent.com/u/113369629?v=4",
+    image:
+      "https://storage.googleapis.com/lablab-static-eu/images/users/true/cmpvg74ko00mcs601hpez5jt6_picture_hd3y61bw4u8r2g791oybust2.jpg",
     links: {
       github: "https://github.com/atharrizwan",
-      linkedin: "",
-      portfolio: "",
+      linkedin: "https://www.linkedin.com/in/athar-rizwan-51450524a/",
+      portfolio: "https://athar-rizwan.dev",
     },
   },
   {
