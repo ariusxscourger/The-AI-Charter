@@ -1,0 +1,1687 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The AI Charter | Band of Agents Hackathon</title>
+
+    <link rel="stylesheet"
+        href="https://api.fontshare.com/v2/css?f[]=cormorant@400,500,600,700&f[]=satoshi@400,500,600,700&display=swap">
+
+    <style>
+        /* ===========================================
+           CSS CUSTOM PROPERTIES (DARK BOTANICAL THEME)
+           =========================================== */
+        :root {
+            /* Colors */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f6f9ff;
+            --bg-tertiary: #eef3ff;
+            --bg-card: #ffffff;
+            --text-primary: #0b0f19;
+            --text-secondary: #1f2937;
+            --text-muted: #4b5563;
+            --accent: #1d4ed8;
+            --accent-light: #3b82f6;
+            --accent-dark: #1e40af;
+            --accent-secondary: #60a5fa;
+            --accent-warning: #1e40af;
+            --accent-green: #2563eb;
+            --border-color: rgba(29, 78, 216, 0.18);
+            --border-light: rgba(29, 78, 216, 0.08);
+
+            /* Typography - Scaled for Presentation Readability */
+            --font-display: 'Cormorant', Georgia, serif;
+            --font-body: 'Satoshi', sans-serif;
+            --title-size: clamp(56px, 5.5vw, 96px);
+            --h2-size: clamp(42px, 4vw, 70px);
+            --h3-size: clamp(32px, 2.6vw, 48px);
+            --subtitle-size: clamp(28px, 2vw, 40px);
+            --body-size: clamp(24px, 1.5vw, 30px);
+            --small-size: clamp(18px, 1.2vw, 24px);
+
+            /* Spacing */
+            --slide-padding: clamp(0.75rem, 2.5vw, 2.25rem);
+            --content-gap: clamp(0.75rem, 1.6vw, 1.25rem);
+            --element-gap: clamp(0.4rem, 0.8vw, 0.7rem);
+
+            /* Animation */
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --ease-out-cubic: cubic-bezier(0.33, 1, 0.68, 1);
+            --duration-normal: 0.8s;
+            --duration-fast: 0.4s;
+        }
+
+        /* ===========================================
+           BASE STYLES & RESET
+           =========================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-snap-type: y mandatory;
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            height: 100%;
+            line-height: 1.2;
+            font-weight: 400;
+        }
+
+        /* ===========================================
+           SLIDE CONTAINER
+           =========================================== */
+        .slide {
+            width: 100vw;
+            min-height: 100vh;
+            min-height: 100dvh;
+            padding: var(--slide-padding);
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: visible;
+            background: var(--bg-primary);
+        }
+
+        .slide-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-height: none;
+            overflow: visible;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* ===========================================
+           BOTANICAL BACKGROUND ELEMENTS
+           =========================================== */
+        .botanical {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            filter: blur(80px);
+            animation: drift 20s ease-in-out infinite;
+        }
+
+        .botanical-1 {
+            width: clamp(300px, 40vw, 500px);
+            height: clamp(300px, 40vw, 500px);
+            background: radial-gradient(ellipse at 30% 30%, var(--accent) 0%, transparent 70%);
+            opacity: 0.14;
+            top: -15%;
+            right: -10%;
+        }
+
+        .botanical-2 {
+            width: clamp(200px, 30vw, 400px);
+            height: clamp(200px, 30vw, 400px);
+            background: radial-gradient(ellipse at 70% 70%, var(--accent-secondary) 0%, transparent 70%);
+            opacity: 0.12;
+            bottom: -10%;
+            left: -5%;
+            animation-delay: -10s;
+        }
+
+        .botanical-3 {
+            width: clamp(150px, 20vw, 250px);
+            height: clamp(200px, 25vw, 350px);
+            background: radial-gradient(ellipse, var(--accent-light) 0%, transparent 70%);
+            opacity: 0.12;
+            top: 40%;
+            left: 10%;
+            animation-delay: -5s;
+        }
+
+        @keyframes drift {
+
+            0%,
+            100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            50% {
+                transform: translate(25px, -20px) rotate(3deg);
+            }
+        }
+
+        /* ===========================================
+           TYPOGRAPHY
+           =========================================== */
+        h1,
+        h2,
+        h3 {
+            font-family: var(--font-display);
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            line-height: 1.1;
+        }
+
+        h1 {
+            font-size: var(--title-size);
+            font-weight: 700;
+            font-style: italic;
+        }
+
+        h2 {
+            font-size: var(--h2-size);
+            margin-bottom: var(--element-gap);
+        }
+
+        h3 {
+            font-size: var(--h3-size);
+            font-weight: 600;
+            font-style: normal;
+        }
+
+        .subtitle {
+            font-family: var(--font-body);
+            font-size: var(--subtitle-size);
+            color: var(--text-secondary);
+            font-weight: 400;
+            max-width: 800px;
+            line-height: 1.3;
+        }
+
+        .label {
+            font-family: var(--font-body);
+            font-size: var(--small-size);
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .text-secondary {
+            color: var(--text-secondary);
+        }
+
+        .text-accent {
+            color: var(--accent);
+        }
+
+        .highlight {
+            color: var(--accent);
+            font-style: normal;
+            font-weight: 700;
+        }
+
+        .big-number {
+            font-family: var(--font-display);
+            font-size: clamp(48px, 5vw, 72px);
+            font-weight: 700;
+            line-height: 1;
+            color: var(--accent);
+        }
+
+        /* ===========================================
+           DECORATIVE DIVIDER
+           =========================================== */
+        .divider {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .divider-line {
+            width: 60px;
+            height: 1px;
+            background: linear-gradient(90deg, var(--accent), transparent);
+        }
+
+        .divider-diamond {
+            width: 6px;
+            height: 6px;
+            background: var(--accent);
+            transform: rotate(45deg);
+        }
+
+        /* ===========================================
+           CARDS & CONTAINERS
+           =========================================== */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: clamp(0.6rem, 1.2vw, 1rem);
+            transition: all var(--duration-fast) ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            opacity: 0;
+            transition: opacity var(--duration-fast) ease;
+        }
+
+        .card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 8px 32px rgba(197, 160, 89, 0.08);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+            gap: clamp(0.3rem, 0.7vw, 0.6rem);
+        }
+
+        .card-title {
+            font-family: var(--font-display);
+            font-size: clamp(26px, 1.8vw, 36px);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.4rem;
+        }
+
+        .card-text {
+            font-size: var(--small-size);
+            color: var(--text-secondary);
+            line-height: 1.35;
+        }
+
+        .card.outlined {
+            background: transparent;
+            border: 1px solid var(--border-color);
+        }
+
+        /* ===========================================
+           LISTS
+           =========================================== */
+        .feature-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.3rem, 0.7vh, 0.6rem);
+        }
+
+        .feature-list li {
+            font-size: var(--body-size);
+            color: var(--text-secondary);
+            padding-left: 1.75em;
+            position: relative;
+            line-height: 1.3;
+        }
+
+        .feature-list li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0.6em;
+            width: 6px;
+            height: 6px;
+            background: var(--accent);
+            transform: rotate(45deg);
+        }
+
+        .numbered-list {
+            list-style: none;
+            counter-reset: item;
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.3rem, 0.7vh, 0.6rem);
+        }
+
+        .numbered-list li {
+            font-size: var(--body-size);
+            color: var(--text-secondary);
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            line-height: 1.3;
+        }
+
+        .numbered-list li::before {
+            counter-increment: item;
+            content: counter(item, decimal-leading-zero);
+            font-family: var(--font-display);
+            font-size: var(--body-size);
+            font-weight: 600;
+            font-style: italic;
+            color: var(--accent);
+            flex-shrink: 0;
+            min-width: 1.5rem;
+        }
+
+        /* ===========================================
+           DATA & STATS
+           =========================================== */
+        .stats-row {
+            display: flex;
+            gap: var(--content-gap);
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .stat-label {
+            font-size: var(--small-size);
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .stat-value {
+            font-family: var(--font-display);
+            font-size: clamp(48px, 4.5vw, 72px);
+            font-weight: 800;
+            font-style: italic;
+            color: var(--accent-dark);
+            line-height: 1;
+            letter-spacing: 0.02em;
+            text-shadow: 0 8px 20px rgba(165, 135, 66, 0.25);
+        }
+
+        .stats-row.problem-stats {
+            gap: clamp(1.5rem, 3vw, 3rem);
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .stats-row.problem-stats .stat-item {
+            min-width: 220px;
+        }
+
+        .stats-row.problem-stats .stat-value {
+            font-size: clamp(48px, 4vw, 72px);
+        }
+
+        .reference {
+            font-size: clamp(16px, 0.9vw, 20px);
+            color: var(--text-muted);
+            margin-top: 0.75rem;
+        }
+
+        .progress-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 1rem;
+            margin-top: 0.75rem;
+        }
+
+        .progress-label {
+            font-size: var(--small-size);
+            color: var(--text-muted);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .progress-value {
+            font-family: var(--font-display);
+            font-size: var(--small-size);
+            font-weight: 600;
+            font-style: italic;
+            color: var(--accent);
+            white-space: nowrap;
+        }
+
+        .progress-bar {
+            background: var(--bg-tertiary);
+            border-radius: 2px;
+            height: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-dark), var(--accent));
+            border-radius: 2px;
+            transition: width 1s var(--ease-out-expo);
+        }
+
+        .progress-fill.green {
+            background: linear-gradient(90deg, #5a7d5a, var(--accent-green));
+        }
+
+        .progress-fill.yellow {
+            background: linear-gradient(90deg, var(--accent-dark), var(--accent));
+        }
+
+        /* ===========================================
+           TAGS & BADGES
+           =========================================== */
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.4rem 0.85rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 2px;
+            font-size: var(--small-size);
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all var(--duration-fast) ease;
+        }
+
+        .tag:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 1rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: var(--small-size);
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        /* ===========================================
+           LAYOUT GRIDS
+           =========================================== */
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--content-gap);
+            align-items: start;
+        }
+
+        .two-column.align-center {
+            align-items: center;
+        }
+
+        .uneven-columns {
+            display: grid;
+            grid-template-columns: 1fr 1.35fr;
+            gap: var(--content-gap);
+            align-items: start;
+        }
+
+        .uneven-columns.align-center {
+            align-items: center;
+        }
+
+        .timeline-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.9fr);
+            gap: var(--content-gap);
+            align-items: start;
+        }
+
+        .stacked-cards {
+            display: flex;
+            flex-direction: column;
+            gap: var(--element-gap);
+        }
+
+        .timeline-card {
+            padding: clamp(0.7rem, 1.4vw, 1.1rem);
+        }
+
+        .timeline-card .timeline {
+            padding-left: 2rem;
+        }
+
+        .timeline-card .timeline::before {
+            left: 5px;
+        }
+
+        .timeline-card .timeline-item::before {
+            left: -2rem;
+            top: 1rem;
+        }
+
+        @media (max-width: 900px) {
+
+            .two-column,
+            .uneven-columns,
+            .timeline-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ===========================================
+           IMAGES
+           =========================================== */
+        .slide-image {
+            max-width: 100%;
+            object-fit: contain;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        .image-frame {
+            background: var(--bg-secondary);
+            padding: 0.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 0 30px rgba(197, 160, 89, 0.05);
+        }
+
+        .pm-screenshots {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+        }
+
+        .pm-screenshots img {
+            max-height: 30vh;
+        }
+
+        .pm-layout {
+            grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.1fr);
+        }
+
+        .pm-left .card {
+            padding: clamp(0.6rem, 1.2vw, 1rem);
+        }
+
+        .pm-left .feature-list li {
+            font-size: var(--small-size);
+            line-height: 1.45;
+        }
+
+        .pm-frame {
+            padding: 0.35rem;
+        }
+
+        /* ===========================================
+           ARCHITECTURE DIAGRAM
+           =========================================== */
+        .architecture {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+        }
+
+        .architecture.deploy-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .architecture.deploy-grid .arch-block {
+            min-height: 160px;
+        }
+
+        .architecture.deploy-grid .arch-block-title {
+            font-size: clamp(22px, 1.5vw, 30px);
+        }
+
+        .architecture.deploy-grid .arch-block-content {
+            font-size: clamp(18px, 1.2vw, 24px);
+        }
+
+        .arch-block {
+            padding: 0.8rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .arch-block.highlight {
+            background: var(--bg-primary);
+            border-color: var(--accent);
+            color: var(--text-primary);
+        }
+
+        .arch-block-title {
+            font-family: var(--font-display);
+            font-size: clamp(22px, 1.5vw, 30px);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 0.4rem;
+        }
+
+        .arch-block-content {
+            font-size: clamp(18px, 1.2vw, 24px);
+            line-height: 1.4;
+            color: var(--text-secondary);
+        }
+
+        .arch-block.highlight .arch-block-content {
+            color: var(--text-secondary);
+        }
+
+        .arch-block.highlight .arch-block-title {
+            color: var(--accent);
+        }
+
+        /* ===========================================
+           TIMELINE & CHALLENGES
+           =========================================== */
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: var(--accent);
+            opacity: 0.7;
+        }
+
+        .timeline-item {
+            position: relative;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -2rem;
+            top: 0.5rem;
+            width: 12px;
+            height: 12px;
+            background: var(--accent);
+            transform: rotate(45deg);
+        }
+
+        .timeline-title {
+            font-family: var(--font-display);
+            font-size: var(--h3-size);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .timeline-text {
+            font-size: var(--small-size);
+            color: var(--text-secondary);
+        }
+
+        .challenge-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            padding: 1.25rem 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .challenge-row:last-child {
+            border-bottom: none;
+        }
+
+        .challenge-label {
+            font-family: var(--font-display);
+            font-size: var(--small-size);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 0.35rem;
+        }
+
+        .challenge-text {
+            font-size: var(--small-size);
+            color: var(--text-secondary);
+        }
+
+        .challenge-side .challenge-label {
+            color: var(--accent-warning);
+        }
+
+        .solution-side .challenge-label {
+            color: var(--accent-green);
+        }
+
+        /* ===========================================
+           AGENDA
+           =========================================== */
+        .agenda-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+
+        .agenda-item {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            padding: 1.2rem 1.5rem;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            border-left: 3px solid var(--accent);
+        }
+
+        .agenda-number {
+            font-family: var(--font-display);
+            font-size: var(--h3-size);
+            font-weight: 600;
+            font-style: italic;
+            color: var(--accent);
+            opacity: 0.6;
+        }
+
+        .agenda-text {
+            font-size: var(--small-size);
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* ===========================================
+           ANIMATIONS
+           =========================================== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(25px);
+            transition: opacity var(--duration-normal) var(--ease-out-cubic), transform var(--duration-normal) var(--ease-out-cubic);
+        }
+
+        .slide.visible .reveal {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal:nth-child(1) {
+            transition-delay: 0.1s;
+        }
+
+        .reveal:nth-child(2) {
+            transition-delay: 0.2s;
+        }
+
+        .reveal:nth-child(3) {
+            transition-delay: 0.3s;
+        }
+
+        .reveal:nth-child(4) {
+            transition-delay: 0.4s;
+        }
+
+        .reveal:nth-child(5) {
+            transition-delay: 0.5s;
+        }
+
+        .reveal:nth-child(6) {
+            transition-delay: 0.6s;
+        }
+
+        .reveal-scale {
+            opacity: 0;
+            transform: scale(0.95);
+            transition: opacity var(--duration-normal) var(--ease-out-cubic), transform var(--duration-normal) var(--ease-out-expo);
+        }
+
+        .slide.visible .reveal-scale {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* ===========================================
+           NAVIGATION & UI
+           =========================================== */
+        .nav-dots {
+            position: fixed;
+            right: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 1000;
+        }
+
+        .nav-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--text-muted);
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            transform: rotate(45deg);
+        }
+
+        .nav-dot.active,
+        .nav-dot:hover {
+            background: var(--accent);
+            transform: rotate(45deg) scale(1.5);
+        }
+
+        .progress-indicator {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-dark), var(--accent), var(--accent-light));
+            z-index: 1001;
+            transition: width var(--duration-fast) ease;
+        }
+
+        .slide-counter {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            font-family: var(--font-display);
+            font-size: var(--body-size);
+            font-weight: 500;
+            font-style: italic;
+            color: var(--text-muted);
+            z-index: 1000;
+        }
+
+        .slide-counter span {
+            color: var(--accent);
+        }
+
+        /* ===========================================
+           TITLE SLIDE COMPRESSION
+           =========================================== */
+        .title-slide {
+            text-align: center;
+        }
+
+        .title-slide .slide-content {
+            justify-content: center;
+            align-items: center;
+        }
+
+        .title-slide h1 {
+            margin-bottom: 0.2rem;
+        }
+
+        .title-slide .divider {
+            margin: 0.75rem 0;
+            justify-content: center;
+        }
+
+        .title-slide .subtitle {
+            margin: 0 auto 1.2rem auto !important;
+            max-width: 700px;
+        }
+
+        .team-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: center;
+        }
+
+        .partners-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1.25rem;
+            margin-top: 1.5rem;
+        }
+
+        .partner-logo {
+            height: clamp(75px, 12vh, 140px);
+            width: auto;
+            opacity: 0.92;
+            background: rgba(245, 241, 232, 0.96);
+            border: 1px solid rgba(197, 160, 89, 0.22);
+            border-radius: 12px;
+            padding: 12px 18px;
+            box-shadow: 0 10px 28px rgba(11, 15, 25, 0.18);
+        }
+
+        .partner-logo.seecs {
+            height: clamp(75px, 12.5vh, 140px);
+        }
+
+        .partner-divider {
+            width: 1px;
+            height: clamp(15px, 2vh, 25px);
+            background: var(--border-color);
+            opacity: 0.9;
+        }
+
+        .meta-info {
+            margin-top: 1rem;
+            font-size: var(--body-size);
+            color: var(--text-muted);
+        }
+
+        .meta-info span {
+            color: var(--accent);
+        }
+
+        /* ===========================================
+           PRINT STYLES FOR PDF EXPORT
+           =========================================== */
+        @media print {
+            @page {
+                margin: 0;
+            }
+
+            html,
+            body {
+                width: 100% !important;
+                height: auto !important;
+                margin: 0;
+                padding: 0;
+                overflow: visible !important;
+                scroll-snap-type: none;
+                background: var(--bg-primary) !important;
+            }
+
+            :root {
+                --title-size: 80px !important;
+                --h2-size: 60px !important;
+                --h3-size: 44px !important;
+                --subtitle-size: 36px !important;
+                --body-size: 26px !important;
+                --small-size: 22px !important;
+                --slide-padding: 2.5rem !important;
+            }
+
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+
+            .slide {
+                width: 100% !important;
+                height: 100vh !important;
+                min-height: 100vh !important;
+                max-height: 100vh !important;
+                page-break-after: always;
+                page-break-inside: avoid;
+                scroll-snap-align: none;
+                position: relative;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+
+            .slide-content {
+                width: 100% !important;
+                max-width: 1200px !important;
+                margin: 0 auto !important;
+            }
+
+            .two-column,
+            .uneven-columns,
+            .timeline-layout {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: var(--content-gap) !important;
+                align-items: start !important;
+            }
+
+            .timeline-layout {
+                grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.9fr) !important;
+            }
+
+            .two-column>*,
+            .uneven-columns>*,
+            .timeline-layout>* {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+
+            .title-slide h1 {
+                margin-bottom: 0 !important;
+            }
+
+            .title-slide .divider {
+                margin: 0.5rem 0 !important;
+            }
+
+            .title-slide .subtitle {
+                margin: 0 auto 1rem auto !important;
+            }
+
+            .partners-row {
+                margin-top: 1rem !important;
+            }
+
+            .partner-logo {
+                height: 110px !important;
+            }
+
+            .partner-logo.seecs {
+                height: 110px !important;
+            }
+
+            .meta-info {
+                margin-top: 0.75rem !important;
+            }
+
+            .reveal,
+            .reveal-scale,
+            .reveal-blur {
+                opacity: 1 !important;
+                transform: none !important;
+                filter: none !important;
+                transition: none !important;
+            }
+
+            .nav-dots,
+            .progress-indicator,
+            .slide-counter {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="progress-indicator" id="progress"></div>
+    <nav class="nav-dots" id="navDots"></nav>
+    <div class="slide-counter"><span id="currentSlide">01</span> / <span id="totalSlides">14</span></div>
+
+    <!-- ==================== SLIDE 1: TITLE ==================== -->
+    <section class="slide title-slide" data-slide="1">
+        <div class="botanical botanical-1"></div>
+        <div class="botanical botanical-2"></div>
+        <div class="botanical botanical-3"></div>
+
+        <div class="slide-content">
+            <span class="label reveal" style="font-size: clamp(24px, 1.6vw, 32px);">Band of Agents Hackathon &middot;
+                Track 3</span>
+            <h1 class="reveal" style="font-size: clamp(72px, 7vw, 120px);">The AI <span class="highlight">Charter</span>
+            </h1>
+
+            <div class="divider reveal">
+                <div class="divider-line"></div>
+                <div class="divider-diamond"></div>
+                <div class="divider-line"></div>
+            </div>
+
+            <p class="subtitle reveal" style="font-size: clamp(36px, 2.6vw, 52px);">Multi-Agent Governance System for
+                Responsible AI Deployment
+            </p>
+
+            <div class="team-row reveal">
+                <div class="badge" style="font-size: clamp(26px, 1.8vw, 34px); padding: 0.6rem 1.4rem;">BrokerBotics
+                </div>
+            </div>
+
+            <p class="meta-info reveal" style="font-size: clamp(24px, 1.5vw, 30px);">
+                Muhammad Saqib <span>&middot;</span> Muhammad Talal Jamil <span>&middot;</span> Muhammad Saad
+                <span>&middot;</span>
+                Muhammad Athar <span>&middot;</span> Muhammad Talha <span>&middot;</span> Meekal Jamil
+            </p>
+        </div>
+    </section>
+
+    <!-- ==================== SLIDE 2: THE TEAM ==================== -->
+    <section class="slide" data-slide="2">
+        <div class="botanical botanical-1"></div>
+        <div class="botanical botanical-2"></div>
+
+        <div class="slide-content"
+            style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <span class="label reveal">Meet the Team</span>
+
+            <div class="reveal-scale"
+                style="background: white; padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                <img src="images/team-section.png" alt="BrokerBotics Team"
+                    style="width: 85vw; max-width: 1300px; height: auto; display: block;">
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== SLIDE 3: PROBLEM ==================== -->
+    <section class="slide" data-slide="3">
+        <div class="botanical botanical-1"></div>
+        <div class="botanical botanical-2"></div>
+
+        <div class="slide-content">
+            <span class="label reveal">The Problem</span>
+            <h2 class="reveal">Governance Gap</h2>
+
+            <div class="two-column align-center" style="margin-top: var(--content-gap);">
+                <div>
+                    <ul class="feature-list reveal" style="--body-size: clamp(28px, 2vw, 38px);">
+                        <li><span class="highlight">AI features ship without formal review</span>, ad-hoc sign-offs, no
+                            audit trail</li>
+                        <li>Regulatory pressure is rising fast (EU AI Act, NIST AI RMF)</li>
+                        <li>Opaque decisions with no cross-functional accountability</li>
+                    </ul>
+                </div>
+                <div class="stats-row problem-stats reveal-scale">
+                    <div class="stat-item">
+                        <div class="stat-value" style="font-size: clamp(60px, 6vw, 96px);">68%</div>
+                        <div class="stat-label" style="font-size: clamp(22px, 1.4vw, 28px);">of AI projects skip formal
+                            governance review</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" style="font-size: clamp(60px, 6vw, 96px);">$4.2M</div>
+                        <div class="stat-label" style="font-size: clamp(22px, 1.4vw, 28px);">average cost of AI
+                            non-compliance fines</div>
+                    </div>
+                </div>
+            </div>
+            <p class="reference" style="font-size: clamp(20px, 1.2vw, 26px);">Source: Gartner AI Risk Survey 2025, EU AI
+                Act Impact Assessment</p>
+        </div>
+    </section>
+
+    <!-- ==================== SLIDE 4: SOLUTION ==================== -->
+    <section class="slide" data-slide="4">
+        <div class="botanical botanical-1"></div>
+        <div class="botanical botanical-2"></div>
+
+        <div class="slide-content">
+            <span class="label reveal">Solution</span>
+            <h2 class="reveal">End-to-End Flow</h2>
+
+            <div class="architecture reveal" style="margin-top: var(--content-gap);">
+                <div class="arch-block"
+                    style="min-height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <div class="arch-block-title" style="font-size: clamp(28px, 2.2vw, 42px);">Submit</div>
+                    <div class="arch-block-content" style="font-size: clamp(24px, 1.7vw, 34px);">Feature proposal via
+                        web form</div>
+                </div>
+                <div class="arch-block highlight"
+                    style="min-height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <div class="arch-block-title" style="font-size: clamp(28px, 2.2vw, 42px);">Band Room</div>
+                    <div class="arch-block-content" style="font-size: clamp(24px, 1.7vw, 34px);">5 agents join &amp;
+                        collaborate</div>
+                </div>
+                <div class="arch-block highlight"
+                    style="min-height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <div class="arch-block-title" style="font-size: clamp(28px, 2.2vw, 42px);">Debate &amp; Vote</div>
+                    <div class="arch-block-content" style="font-size: clamp(24px, 1.7vw, 34px);">Cross-examination +
+                        verdict</div>
+                </div>
+                <div class="arch-block"
+                    style="min-height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <div class="arch-block-title" style="font-size: clamp(28px, 2.2vw, 42px);">Record</div>
+                    <div class="arch-block-content" style="font-size: clamp(24px, 1.7vw, 34px);">Immutable audit trail
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== SLIDE 5: AGENT PANEL ==================== -->
+    <section class="slide" data-slide="5">
+        <div class="botanical botanical-1"></div>
+        <div class="botanical botanical-2"></div>
+
+        <div class="slide-content">
+            <span class="label reveal">The Agent Panel</span>
+            <h2 class="reveal">5 Specialists, 1 Verdict</h2>
+
+            <div
+                style="display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(0.3rem, 0.6vw, 0.5rem); margin-top: var(--content-gap);">
+                <div class="card reveal"
+                    style="min-height: 180px; display: flex; flex-direction: column; justify-content: center;">
+                    <div class="card-title" style="font-size: clamp(30px, 2.2vw, 42px);">&#x1F512; Security</div>
+                    <div class="card-text" style="font-size: clamp(22px, 1.5vw, 30px);">Attack surface, data handling,
+                        authentication, abuse risks, model safety</div>
+                </div>
+                <div class="card reveal"
+                    style="min-height: 180px; display: flex; flex-direction: column; justify-content: center;">
+                    <div class="card-title" style="font-size: clamp(30px, 2.2vw, 42px);">&#x2696;&#xFE0F; Ethics</div>
+                    <div class="card-text" style="font-size: clamp(22px, 1.5vw, 30px);">Fairness, bias, harm potential,
+                        values alignment, demographic impact</div>
+                </div>
+                <div class="card reveal"
+                    style="min-height: 180px; display: flex; flex-direction: column; justify-content: center;">
+                    <div class="card-title" style="font-size: clamp(30px, 2.2vw, 42px);">&#x1F4DC; Legal</div>
+                    <div class="card-text" style="font-size: clamp(22px, 1.5vw, 30px);">Regulatory exposure, IP
+                        concerns, privacy, jurisdictional requirements</div>
+                </div>
+                <div class="card reveal"
+                    style="min-height: 180px; display: flex; flex-direction: column; justify-content: center;">
+                    <div class="card-title" style="font-size: clamp(30px, 2.2vw, 42px);">&#x1F680; Product</div>
+                    <div class="card-text" style="font-size: clamp(22px, 1.5vw, 30px);">User impact, UX implications,
+                        business rationale, rollout readiness</div>
+                </div>
+                <div class="card reveal"
+                    style="min-height: 180px; display: flex; flex-direction: column; justify-content: center;">
+                    <div class="card-title" style="font-size: clamp(30px, 2.2vw, 42px);">&#x2705; Compliance</div>
+                    <div class="card-text" style="font-size: clamp(22px, 1.5vw, 30px);">Policy checklists, standards
+                        coverage, audit evidence, governance completeness</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== SLIDE 6: HOW IT WORKS ==================== -->
+    <section class="slide" data-slide="6">
+        <div class="botanical botanical-1"></div>
+        <div class="botanical botanical-2"></div>
+
+        <div class="slide-content">
+            <span class="label reveal">Workflow</span>
+            <h2 class="reveal">How It Works</h2>
+
+            <div class="two-column align-center" style="margin-top: var(--content-gap);">
+                <div>
+                    <ol class="numbered-list reveal">
+                        <li>Team submits AI feature proposal via web form</li>
+                        <li>Orchestrator creates Band.ai room, posts submission context</li>
+                        <li>5 agents fire concurrently , each runs LLM-powered domain evaluation</li>
+                        <li>Cross-examination: agents read peer findings, challenge if needed</li>
+                        <li>Each agent casts a vote (approve / reject / flag)</li>
+                        <li>Record generator compiles full transcript into governance record</li>
+                    </ol>
+                </div>
+                <div class="card reveal-scale"
+                    style="padding: clamp(1rem, 2vw, 1.5rem); display: flex; flex-direction: column; justify-content: center;">
+                    <div class="card-title" style="margin-bottom: 0.75rem;">Message Types in Band Room</div>
+                    <ul class="feature-list">
+                        <li><span class="text-accent">submission_context</span> , Full proposal payload</li>
+                        <li><span class="text-accent">status_update</span> , Agent progress</li>
+                        <li><span class="text-accent">findings</span> , Structured domain results</li>
+                        <li><span class="text-accent">challenge</span> , Cross-examination debates</li>
+                        <li><span class="text-accent">vote</span> , Final verdict with reasoning</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== SLIDE 7: BAND = COLLABORATION ==================== -->
+    <section class="slide" data-slide="7">
+        <div class="botanical botanical-1"></div>
+        <div class="botanical botanical-2"></div>
+
+        <div class="slide-content">
+            <span class="label reveal">Band.ai Deep Dive</span>
+            <h2 class="reveal">Band <span class="highlight">=</span> Collaboration Layer</h2>
+
+            <div class="two-column align-center" style="margin-top: var(--content-gap);">
+                <div>
+                    <ul class="feature-list reveal">
+                        <li><span class="highlight">Band room IS the audit trail</span> , no separate status DB needed
+                        </li>
+                        <li>Agents discover each other, join rooms, and exchange structured context</li>
+                        <li>Cross-examination happens inside Band: agents challenge peer findings in real-time</li>
+                        <li><span class="highlight">sessionId = room_id</span> , clean, traceable architecture</li>
+                        <li>Full transcript compiles into defensible governance record</li>
+                    </ul>
+                </div>
+                <div class="card reveal-scale"
+                    style="padding: clamp(1rem, 2vw, 1.5rem); display: flex; flex-direction: column; justify-content: center;">
+                    <div class="card-title" style="margin-bottom: 0.75rem;">Why Band Matters</div>
+                    <ul class="feature-list">
+                        <li>Not a notification wrapper , it IS the collaboration backbone</li>
+                        <li>Agents coordinate, not just respond</li>
+                        <li>Shared context enables genuine debate</li>
+                        <li>Enterprise-grade auditability out of the box</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== SLIDE 8: ARCHITECTURE ==================== -->
+    <section class="slide" data-slide="8">
+        <div class="botanical botanical-1"></div>
+        <div class="botanical botanical-2"></div>
+
+        <div class="slide-content">
+            <span class="label reveal">Tech Stack</span>
+            <h2 class="reveal">Architecture</h2>
+
+            <div class="architecture deploy-grid reveal" style="margin-top: var(--content-gap);">
+                <div class="arch-block"
+                    style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <div class="arch-block-title" style="font-size: clamp(28px, 2.2vw, 42px);">Frontend</div>
+                    <div class="arch-block-content" style="font-size: clamp(24px, 1.7vw, 34px);">Next.js 16 + Tailwind
+                    </div>
+                </div>
+                <div class="arch-block highlight"
+                    style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <div class="arch-block-title" style="font-size: clamp(28px, 2.2vw, 42px);">Backend</div>
+                    <div class="arch-block-content" style="font-size: clamp(24px, 1.7vw, 34px);">FastAPI + Pydantic
+                    </div>
+                </div>
+                <div class="arch-block highlight"
+                    style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <div class="arch-block-title" style="font-size: clamp(28px, 2.2vw, 42px);">Collaboration</div>
+                    <div class="arch-block-content" style="font-size: clamp(24px, 1.7vw, 34px);">Band.ai SDK</div>
+                </div>
+                <div class="arch-block"
+                    style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <div class="arch-block-title" style="font-size: clamp(28px, 2.2vw, 42px);">Database</div>
+                    <div class="arch-block-content" style="font-size: clamp(24px, 1.7vw, 34px);">PostgreSQL</div>
+                </div>
+                <div class="arch-block"
+                    style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <div class="arch-block-title" style="font-size: clamp(28px, 2.2vw, 42px);">LLM Inference</div>
+                    <div class="arch-block-content" style="font-size: clamp(24px, 1.7vw, 34px);">Featherless + AI/ML API
+                    </div>
+                </div>
+                <div class="arch-block"
+                    style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <div class="arch-block-title" style="font-size: clamp(28px, 2.2vw, 42px);">Deploy</div>
+                    <div class="arch-block-content" style="font-size: clamp(24px, 1.7vw, 34px);">Docker Compose</div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ==================== SLIDE 9: SYSTEM ARCHITECTURE ==================== -->
+    <section class="slide" data-slide="9">
+        <div class="slide-content"
+            style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <span class="label reveal">System Architecture</span>
+            <h2 class="reveal" style="margin-bottom: var(--content-gap);">How It All Connects</h2>
+
+            <div class="reveal-scale"
+                style="background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                <img src="images/architecture-diagram.png" alt="System Architecture Diagram"
+                    style="width: 70vw; max-width: 900px; height: auto; display: block;">
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== SLIDE 10: KEY DIFFERENTIATORS ==================== -->
+    <section class="slide" data-slide="10">
+        <div class="botanical botanical-1"></div>
+        <div class="botanical botanical-2"></div>
+
+        <div class="slide-content">
+            <span class="label reveal">Differentiation</span>
+            <h2 class="reveal">Key Differentiators</h2>
+
+            <div
+                style="display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(0.3rem, 0.6vw, 0.5rem); margin-top: var(--content-gap);">
+                <div class="card reveal" style="display: flex; flex-direction: column; justify-content: center;">
+                    <div class="card-title" style="font-size: clamp(26px, 1.8vw, 36px);">Deterministic Voting</div>
+                    <div class="card-text" style="font-size: clamp(20px, 1.3vw, 28px);">LLMs power evaluation and
+                        reasoning, but the vote itself is pure Python logic. Reproducible, auditable, not subject to
+                        hallucination at the decision layer.</div>
+                </div>
+                <div class="card reveal" style="display: flex; flex-direction: column; justify-content: center;">
+                    <div class="card-title" style="font-size: clamp(26px, 1.8vw, 36px);">Concurrent 5-Agent Execution
+                    </div>
+                    <div class="card-text" style="font-size: clamp(20px, 1.3vw, 28px);">All agents run in parallel via
+                        asyncio. Security alone runs 7 sub-domain evaluations concurrently with rate limiting and retry
+                        logic.</div>
+                </div>
+                <div class="card reveal" style="display: flex; flex-direction: column; justify-content: center;">
+                    <div class="card-title" style="font-size: clamp(26px, 1.8vw, 36px);">Resilient Error Handling</div>
+                    <div class="card-text" style="font-size: clamp(20px, 1.3vw, 28px);">Band SDK falls back to local
+                        mock rooms. LLM client retries 10x with exponential backoff. Agents degrade gracefully on
+                        failure.</div>
+                </div>
+                <div class="card reveal" style="display: flex; flex-direction: column; justify-content: center;">
+                    <div class="card-title" style="font-size: clamp(26px, 1.8vw, 36px);">Provider-Flexible LLM</div>
+                    <div class="card-text" style="font-size: clamp(20px, 1.3vw, 28px);">Supports 3 LLM providers
+                        (Featherless, AI/ML API, OpenRouter) with automatic fallback. Open-source models by default,
+                        near-zero cost.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== SLIDE 11: PRODUCT ==================== -->
+    <section class="slide" data-slide="11">
+        <div class="botanical botanical-1"></div>
+        <div class="botanical botanical-2"></div>
+
+        <div class="slide-content">
+            <span class="label reveal">Product</span>
+            <h2 class="reveal">Full-Stack Application</h2>
+
+            <div style="margin-top: var(--content-gap);">
+                <div class="reveal-scale" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem; max-width: 1100px; margin: 0 auto;">
+                    <div class="image-frame" style="display: flex; flex-direction: column; align-items: center; padding: 0.5rem;">
+                        <img src="images/dashboard.png" alt="Dashboard" class="slide-image" style="max-height: 45vh; width: 100%;">
+                        <span style="font-size: clamp(16px, 1.1vw, 22px); color: var(--text-muted); margin-top: 0.4rem; text-transform: uppercase; letter-spacing: 0.1em;">Dashboard</span>
+                    </div>
+                    <div class="image-frame" style="display: flex; flex-direction: column; align-items: center; padding: 0.5rem;">
+                        <img src="images/submit-step1-filled.png" alt="Submit - Overview" class="slide-image" style="max-height: 45vh; width: 100%;">
+                        <span style="font-size: clamp(16px, 1.1vw, 22px); color: var(--text-muted); margin-top: 0.4rem; text-transform: uppercase; letter-spacing: 0.1em;">Propose</span>
+                    </div>
+                    <div class="image-frame" style="display: flex; flex-direction: column; align-items: center; padding: 0.5rem;">
+                        <img src="images/submit-step2.png" alt="Submit - Risk Profile" class="slide-image" style="max-height: 45vh; width: 100%;">
+                        <span style="font-size: clamp(16px, 1.1vw, 22px); color: var(--text-muted); margin-top: 0.4rem; text-transform: uppercase; letter-spacing: 0.1em;">Risk Profile</span>
+                    </div>
+                    <div class="image-frame" style="display: flex; flex-direction: column; align-items: center; padding: 0.5rem;">
+                        <img src="images/review-page.png" alt="Live Review" class="slide-image" style="max-height: 45vh; width: 100%;">
+                        <span style="font-size: clamp(16px, 1.1vw, 22px); color: var(--text-muted); margin-top: 0.4rem; text-transform: uppercase; letter-spacing: 0.1em;">Live Review</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== SLIDE 12: GOVERNANCE RECORD ==================== -->
+    <section class="slide" data-slide="12">
+        <div class="botanical botanical-1"></div>
+        <div class="botanical botanical-2"></div>
+
+        <div class="slide-content">
+            <span class="label reveal">Governance Record</span>
+            <h2 class="reveal">Final Verdict</h2>
+
+            <div style="margin-top: var(--content-gap); display: flex; justify-content: center;">
+                <div class="reveal-scale image-frame" style="max-width: 800px; width: 100%;">
+                    <img src="images/verdict-final.png" alt="Governance Record - Final Verdict" class="slide-image" style="width: 100%;">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== SLIDE 13: BUSINESS VALUE ==================== -->
+    <section class="slide" data-slide="13">
+        <div class="botanical botanical-1"></div>
+        <div class="botanical botanical-2"></div>
+
+        <div class="slide-content">
+            <span class="label reveal">Business Value</span>
+            <h2 class="reveal">Regulated Workflows</h2>
+
+            <div class="two-column align-center" style="margin-top: var(--content-gap);">
+                <div>
+                    <ul class="feature-list reveal">
+                        <li>Built for <span class="highlight">Track 3: Regulated &amp; High-Stakes Workflows</span></li>
+                        <li>Automated pre-deployment AI governance review</li>
+                        <li>Supports GDPR, CCPA, SOC 2, EU AI Act compliance targets</li>
+                        <li>Defensible audit trail for regulators and internal review boards</li>
+                        <li>Reduces manual review cycles from days to minutes</li>
+                    </ul>
+                    <div class="tags" style="margin-top: var(--element-gap);">
+                        <span class="tag">EU AI Act</span>
+                        <span class="tag">NIST AI RMF</span>
+                        <span class="tag">GDPR</span>
+                        <span class="tag">SOC 2</span>
+                    </div>
+                </div>
+                <div class="stats-row problem-stats reveal-scale">
+                    <div class="stat-item">
+                        <div class="stat-value">5</div>
+                        <div class="stat-label">Agents collaborating in real-time</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">7+</div>
+                        <div class="stat-label">Security sub-domains evaluated per review</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== SLIDE 14: IMPACT & NOVELTY ==================== -->
+    <section class="slide" data-slide="14">
+        <div class="botanical botanical-1"></div>
+        <div class="botanical botanical-2"></div>
+
+        <div class="slide-content">
+            <span class="label reveal">Impact &amp; Novelty</span>
+            <h2 class="reveal">Beyond Chatbots</h2>
+
+            <div class="two-column align-center" style="margin-top: var(--content-gap);">
+                <div>
+                    <ul class="feature-list reveal">
+                        <li>Agents don't just respond , they <span class="highlight">debate, challenge, and vote</span>
+                        </li>
+                        <li>Cross-examination creates adversarial rigor no single agent can achieve</li>
+                        <li>Deterministic verdict logic ensures reproducibility and trust</li>
+                        <li>Band.ai rooms provide enterprise-grade collaboration out of the box</li>
+                        <li>Open-source models keep costs near zero for any organization</li>
+                    </ul>
+                </div>
+                <div class="card reveal-scale"
+                    style="padding: clamp(1rem, 2vw, 1.5rem); display: flex; flex-direction: column; justify-content: center;">
+                    <div class="card-title" style="margin-bottom: 0.75rem;">What Becomes Possible</div>
+                    <ul class="feature-list">
+                        <li>Multi-agent governance without human bottlenecks</li>
+                        <li>Cross-functional review in minutes, not weeks</li>
+                        <li>Transparent, auditable AI decision-making</li>
+                        <li>Scalable compliance for any regulated industry</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+
+    <script>
+        class SlidePresentation {
+            constructor() {
+                this.slides = document.querySelectorAll('.slide');
+                this.totalSlides = this.slides.length;
+                this.currentSlide = 0;
+                this.init();
+            }
+
+            init() {
+                document.getElementById('totalSlides').textContent = String(this.totalSlides).padStart(2, '0');
+                this.createNavDots();
+                this.setupIntersectionObserver();
+                this.setupKeyboardNav();
+                this.setupTouchNav();
+                this.setupScrollDetection();
+                this.updateUI();
+            }
+
+            createNavDots() {
+                const navDots = document.getElementById('navDots');
+                this.slides.forEach((slide, index) => {
+                    const dot = document.createElement('button');
+                    dot.className = 'nav-dot';
+                    dot.setAttribute('aria-label', `Go to slide ${index + 1}`);
+                    dot.addEventListener('click', () => this.goToSlide(index));
+                    navDots.appendChild(dot);
+                });
+            }
+
+            setupIntersectionObserver() {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                            const slideIndex = parseInt(entry.target.dataset.slide) - 1;
+                            this.currentSlide = slideIndex;
+                            this.updateUI();
+                        }
+                    });
+                }, {threshold: 0.5});
+                this.slides.forEach(slide => observer.observe(slide));
+            }
+
+            setupKeyboardNav() {
+                document.addEventListener('keydown', (e) => {
+                    switch (e.key) {
+                        case 'ArrowDown': case 'ArrowRight': case ' ': case 'PageDown':
+                            e.preventDefault(); this.nextSlide(); break;
+                        case 'ArrowUp': case 'ArrowLeft': case 'PageUp':
+                            e.preventDefault(); this.prevSlide(); break;
+                        case 'Home':
+                            e.preventDefault(); this.goToSlide(0); break;
+                        case 'End':
+                            e.preventDefault(); this.goToSlide(this.totalSlides - 1); break;
+                    }
+                });
+            }
+
+            setupTouchNav() {
+                let touchStartY = 0; let touchStartX = 0;
+                document.addEventListener('touchstart', (e) => {
+                    touchStartY = e.touches[0].clientY; touchStartX = e.touches[0].clientX;
+                }, {passive: true});
+                document.addEventListener('touchend', (e) => {
+                    const diffY = touchStartY - e.changedTouches[0].clientY;
+                    const diffX = touchStartX - e.changedTouches[0].clientX;
+                    if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 50) {
+                        diffY > 0 ? this.nextSlide() : this.prevSlide();
+                    }
+                }, {passive: true});
+            }
+
+            setupScrollDetection() {
+                let scrollTimeout;
+                window.addEventListener('scroll', () => {
+                    clearTimeout(scrollTimeout);
+                    scrollTimeout = setTimeout(() => {
+                        const currentIndex = Math.round(window.scrollY / window.innerHeight);
+                        if (currentIndex !== this.currentSlide && currentIndex >= 0 && currentIndex < this.totalSlides) {
+                            this.currentSlide = currentIndex;
+                            this.updateUI();
+                        }
+                    }, 50);
+                }, {passive: true});
+            }
+
+            goToSlide(index) {
+                if (index >= 0 && index < this.totalSlides) {
+                    this.currentSlide = index;
+                    this.slides[index].scrollIntoView({behavior: 'smooth'});
+                    this.updateUI();
+                }
+            }
+            nextSlide() {if (this.currentSlide < this.totalSlides - 1) this.goToSlide(this.currentSlide + 1);}
+            prevSlide() {if (this.currentSlide > 0) this.goToSlide(this.currentSlide - 1);}
+
+            updateUI() {
+                document.getElementById('currentSlide').textContent = String(this.currentSlide + 1).padStart(2, '0');
+                document.getElementById('progress').style.width = `${((this.currentSlide + 1) / this.totalSlides) * 100}%`;
+                document.querySelectorAll('.nav-dot').forEach((dot, index) => dot.classList.toggle('active', index === this.currentSlide));
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => new SlidePresentation());
+    </script>
+</body>
+
+</html>
